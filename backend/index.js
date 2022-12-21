@@ -14,31 +14,67 @@ app.use(cors());
 app.use(express.json());
 
 app.post("/rider/register", async (req, res) => {
-  let rider = new Rider(req.body);
-  let result = await rider.save();
-  result = result.toObject();
-  delete result.password;
-  console.log(`${rider.name} registered as a Rider`);
-  jwt.sign({ result }, jwtKey, { expiresIn: "2h" }, (err, token) => {
-    if (err) {
-      res.status(400).send("Something went wrong");
+  let compareEmail = await Rider.find({ email: req.body.email });
+  // console.log(req.body.email);
+  // console.log(compareEmail);
+  if (compareEmail.length === 0) {
+    let compareContact = await Rider.find({ contact: req.body.contact });
+    if (compareContact.length === 0) {
+      let rider = new Rider(req.body);
+      let result = await rider.save();
+      result = result.toObject();
+      delete result.password;
+      console.log(`${rider.name} registered as a Rider`);
+      jwt.sign({ result }, jwtKey, { expiresIn: "2h" }, (err, token) => {
+        if (err) {
+          res.status(400).send("Something went wrong");
+        }
+        res.status(200).send({ role: "rider", result, auth: token });
+      });
+    } else {
+      res.status(400).send({
+        result:
+          "This contact no is already associated with an account. Please try a different one.",
+      });
     }
-    res.status(200).send({ role: "rider", result, auth: token });
-  });
+  } else {
+    res.status(400).send({
+      result:
+        "This email is already associated with an account. Please try a different one.",
+    });
+  }
 });
 
 app.post("/driver/register", async (req, res) => {
-  let driver = new Driver(req.body);
-  let result = await driver.save();
-  result = result.toObject();
-  delete result.password;
-  console.log(`${driver.name} registered as a Driver`);
-  jwt.sign({ result }, jwtKey, { expiresIn: "2h" }, (err, token) => {
-    if (err) {
-      res.status(400).send("Something went wrong");
+  let compareEmail = await Driver.find({ email: req.body.email });
+  console.log(req.body.email);
+  console.log(compareEmail);
+  if (compareEmail.length === 0) {
+    let compareContact = await Driver.find({ contact: req.body.contact });
+    if (compareContact.length === 0) {
+      let driver = new Driver(req.body);
+      let result = await driver.save();
+      result = result.toObject();
+      delete result.password;
+      console.log(`${driver.name} registered as a Driver`);
+      jwt.sign({ result }, jwtKey, { expiresIn: "2h" }, (err, token) => {
+        if (err) {
+          res.status(400).send("Something went wrong");
+        }
+        res.status(200).send({ role: "driver", result, auth: token });
+      });
+    } else {
+      res.status(400).send({
+        result:
+          "This contact no is already associated with an account. Please try a different one.",
+      });
     }
-    res.status(200).send({ role: "driver", result, auth: token });
-  });
+  } else {
+    res.status(400).send({
+      result:
+        "This email is already associated with an account. Please try a different one.",
+    });
+  }
 });
 
 app.post("/rider/login", async (req, res) => {
@@ -113,12 +149,23 @@ app.get("/riders", verifyToken, async (req, res) => {
   }
 });
 
-app.post("/addbooking", async (req, res) => {
+app.post("/addbooking", verifyToken, async (req, res) => {
   let booking = new Booking(req.body);
   let result = await booking.save();
   result = result.toObject();
   console.log(`${booking.riderName} requested a ride`);
   res.status(200).send({ booking });
+});
+
+app.get("/bookings/:name", verifyToken, async (req, res) => {
+  const bookings = await Booking.find({
+    $or: [{ riderName: req.params.name }, { driverName: req.params.name }],
+  });
+  if (bookings.length > 0) {
+    res.status(200).send(bookings);
+  } else {
+    res.status(400).send({ result: "No Bookings found" });
+  }
 });
 
 app.get("/bookings/request/:name", verifyToken, async (req, res) => {
@@ -131,12 +178,31 @@ app.get("/bookings/request/:name", verifyToken, async (req, res) => {
     res.status(400).send({ result: "No Bookings found" });
   }
 });
+
 app.put("/booking/:id", verifyToken, async (req, res) => {
   let result = await Booking.updateOne(
     { _id: req.params.id },
     { $set: req.body }
   );
   res.status(200).send({ result });
+});
+
+app.put("/driver/rating/:contact", verifyToken, async (req, res) => {
+  let result = await Driver.updateOne(
+    { contact: req.params.contact },
+    { $push: { ratings: req.body.rating } }
+  );
+  res.status(200).send({ result });
+});
+
+// app.get("/driver/rating/:contact", verifyToken, async (req, res) => {
+//   let result = await Driver.aggregate([{ $addFields: {} }]);
+//   res.status(200).send({ result });
+// });
+
+app.get("/booking/:id", verifyToken, async (req, res) => {
+  let booking = await Booking.find({ _id: req.params.id });
+  res.status(200).send({ booking });
 });
 
 // app.put("/booking/rating/:id", verifyToken, async (req, res) => {
@@ -159,12 +225,51 @@ app.put("/rider/:id", verifyToken, async (req, res) => {
   );
   res.status(200).send(result);
 });
+
+app.put("/rider/updatepassword/:id", verifyToken, async (req, res) => {
+  let rider = await Rider.findOne({ _id: req.params.id });
+  if (rider) {
+    let compare = await bcrypt.compare(req.body.curPassword, rider.password);
+    if (compare) {
+      let hashPassword = await bcrypt.hash(req.body.newPassword, 10);
+      let data = await Rider.findByIdAndUpdate(
+        { _id: req.params.id },
+        { $set: { password: hashPassword } }
+      );
+      res.status(200).send({ result: data });
+    } else {
+      res.status(400).send({ result: "Incorrect Current Password" });
+    }
+  } else {
+    res.status(400).send({ result: "No user found" });
+  }
+});
+
 app.put("/driver/:id", verifyToken, async (req, res) => {
   let result = await Driver.updateOne(
     { _id: req.params.id },
     { $set: req.body }
   );
   res.status(200).send(result);
+});
+
+app.put("/driver/updatepassword/:id", verifyToken, async (req, res) => {
+  let driver = await Driver.findOne({ _id: req.params.id });
+  if (driver) {
+    let compare = await bcrypt.compare(req.body.curPassword, driver.password);
+    if (compare) {
+      let hashPassword = await bcrypt.hash(req.body.newPassword, 10);
+      let data = await Driver.findByIdAndUpdate(
+        { _id: req.params.id },
+        { $set: { password: hashPassword } }
+      );
+      res.status(200).send({ result: data });
+    } else {
+      res.status(400).send({ result: "Incorrect Current Password" });
+    }
+  } else {
+    res.status(400).send({ result: "No user found" });
+  }
 });
 
 function verifyToken(req, res, next) {
