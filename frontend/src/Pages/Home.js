@@ -181,23 +181,36 @@ const Home = () => {
               How do I create an account?
             </Accordion.Header>
             <Accordion.Body>
-              To create a Careem account you need a valid email address and
-              mobile number. Download the app for your iOS or Android device and
-              sign up with your mobile number. You may use an international
-              number as long as the number is active to receive SMS. To make
-              sure it’s your real number, we’ll send you a verification code via
-              SMS which you need to enter to sign up. If the SMS with the code
-              does not arrive, you can request a call from the same screen. Once
-              your number is verified, you’re ready to use Careem!
-              Alternatively, if you're comfortable with linking your Facebook
-              profile to your Careem account, you can sign up via Facebook. The
-              app will redirect you to a Facebook page where the email and
-              password are required to authorize Careem usage. During the
-              sign-up process, we ask you for your email address. We need your
-              email address for instances where you may have forgotten your
-              password and need to receive instructions via email on how to
-              reset it. We also send you detailed ride receipts via email. You
-              can also create an account on the web at www.careem.com.
+              <p>
+                To create a Careem account you need a valid email address and
+                mobile number. Download the app for your iOS or Android device
+                and sign up with your mobile number. You may use an
+                international number as long as the number is active to receive
+                SMS.
+              </p>{" "}
+              <p>
+                To make sure it’s your real number, we’ll send you a
+                verification code via SMS which you need to enter to sign up. If
+                the SMS with the code does not arrive, you can request a call
+                from the same screen.
+              </p>{" "}
+              <p>Once your number is verified, you’re ready to use Careem!</p>
+              <p>
+                Alternatively, if you're comfortable with linking your Facebook
+                profile to your Careem account, you can sign up via Facebook.
+                The app will redirect you to a Facebook page where the email and
+                password are required to authorize Careem usage.
+              </p>{" "}
+              <p>
+                During the sign-up process, we ask you for your email address.
+                We need your email address for instances where you may have
+                forgotten your password and need to receive instructions via
+                email on how to reset it. We also send you detailed ride
+                receipts via email.
+              </p>{" "}
+              <p>
+                You can also create an account on the web at www.careem.com.
+              </p>
             </Accordion.Body>
           </Accordion.Item>
           <Accordion.Item eventKey="1">

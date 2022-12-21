@@ -25,8 +25,6 @@ const PickRide = () => {
   const [routeDirectionsResponse, setRouteDirectionsResponse] = useState(null);
   const [distance, setDistance] = useState("");
   const [duration, setDuration] = useState("");
-  // const [fare, setFare] = useState(0);
-  // const [rideStatus, setRideStatus] = useState("");
 
   const [driverDirectionsResponse, setDriverDirectionsResponse] =
     useState(null);
@@ -42,6 +40,7 @@ const PickRide = () => {
   const [riderOrigin, setRiderOrigin] = useState("");
   const [riderDestination, setRiderDestination] = useState("");
   const [rideDate, setRideDate] = useState(null);
+  const [rideStatus, setRideStatus] = useState("");
 
   const [show, setShow] = useState(false);
   const [accepted, setAccepted] = useState(false);
@@ -50,12 +49,15 @@ const PickRide = () => {
   const handleShow = () => setShow(true);
 
   useEffect(() => {
-    center = {};
-    navigator.geolocation.getCurrentPosition((position) => {
-      center.lat = position.coords.latitude;
-      center.lng = position.coords.longitude;
-      console.log(center);
-    });
+    // center = {};
+    // navigator.geolocation.getCurrentPosition((position) => {
+    //   center.lat = position.coords.latitude;
+    //   center.lng = position.coords.longitude;
+    //   console.log(center);
+    // });
+    let user = JSON.parse(localStorage.getItem("user"));
+    center.lat = user.location.lat;
+    center.lng = user.location.lng;
     console.log(center);
     getData();
     setInterval(() => getData(), 10000);
@@ -96,11 +98,10 @@ const PickRide = () => {
     setDuration(results.routes[0].legs[0].duration.text);
   }
 
-  function acceptRide(id) {
+  async function acceptRide(id) {
     bookings.map((booking) => {
       if (booking._id === id) {
         let user = JSON.parse(localStorage.getItem("user"));
-
         console.log(user);
         Geocode.fromLatLng(user.location.lat, user.location.lng).then(
           (response) => {
@@ -128,27 +129,68 @@ const PickRide = () => {
               });
           }
         );
+        localStorage.setItem("booking", JSON.stringify(booking));
       }
     });
+    let { _id } = JSON.parse(localStorage.getItem("booking"));
+    // console.log(_id);
+    let finishResult = await fetch(`http://localhost:5000/booking/${_id}`, {
+      method: "put",
+      body: JSON.stringify({
+        status: "accepted",
+      }),
+      headers: {
+        "Content-Type": "application/json",
+        authorization: JSON.parse(localStorage.getItem("token")),
+      },
+    });
+    finishResult = await finishResult.json();
+    console.warn(finishResult);
+
+    _id = JSON.parse(localStorage.getItem("user"))._id;
+    // console.log(_id);
+    let result = await fetch(`http://localhost:5000/driver/${_id}`, {
+      method: "put",
+      body: JSON.stringify({
+        status: "inride",
+      }),
+      headers: {
+        "Content-Type": "application/json",
+        authorization: JSON.parse(localStorage.getItem("token")),
+      },
+    });
+    result = await result.json();
+    console.warn(result);
+
     // e.preventDefault();
     map.panTo(center);
     setAccepted(true);
   }
 
-  // function clearRoute() {
-  //   setRouteDirectionsResponse(null);
-  //   setDistance("");
-  //   setDuration("");
-  //   originRef.current.value = "";
-  //   destinationRef.current.value = "";
-  // }
+  const startRide = async () => {
+    let { _id } = JSON.parse(localStorage.getItem("booking"));
+    console.log(_id);
+    let result = await fetch(`http://localhost:5000/booking/${_id}`, {
+      method: "put",
+      body: JSON.stringify({
+        status: "started",
+      }),
+      headers: {
+        "Content-Type": "application/json",
+        authorization: JSON.parse(localStorage.getItem("token")),
+      },
+    });
+    result = await result.json();
+    console.warn(result);
+    handleShow();
+  };
 
   return (
     <div className="flex">
       <div className=" w-1/2 m-5">
-        {bookings.length === 0 ? (
+        {bookings.length === 0 && !accepted ? (
           <Card>
-            <Card.Header as="h5"> No Bookings at the moment!</Card.Header>
+            <Card.Header as="h3"> No Bookings at the moment!</Card.Header>
             <Card.Body>
               <Card.Title></Card.Title>
               <Card.Text>Search for riders</Card.Text>
@@ -170,9 +212,26 @@ const PickRide = () => {
                   <Card.Body>
                     <Card.Title>{riderName}</Card.Title>
                     <Card.Text>
-                      <p>Date: {rideDate}</p>
-                      <p>Origin: {riderOrigin}</p>
-                      <p>Destination: {riderDestination}</p>
+                      <p>
+                        <b>Date: </b>
+                        {rideDate}
+                      </p>
+                      <p>
+                        <b>Origin: </b>
+                        {riderOrigin}
+                      </p>
+                      <p>
+                        <b>Destination: </b>
+                        {riderDestination}
+                      </p>
+                      <p>
+                        <b>Distance: </b>
+                        {riderDistance}
+                      </p>
+                      <p>
+                        <b>Duration: </b>
+                        {riderDuration}
+                      </p>
                     </Card.Text>
                     <Button variant="success" onClick={showRoute}>
                       Show Route
@@ -180,7 +239,7 @@ const PickRide = () => {
                     <Button
                       className="mt-1"
                       variant="success"
-                      onClick={handleShow}
+                      onClick={startRide}
                     >
                       Start Ride
                     </Button>
@@ -197,9 +256,14 @@ const PickRide = () => {
                     <Card.Body>
                       <Card.Title>{booking.riderName}</Card.Title>
                       <Card.Text>
-                        <p>Date: {booking.date}</p>
-                        <p>Origin: {booking.riderOrigin}</p>
-                        <p>Destination: {booking.riderDestination}</p>
+                        <p>
+                          <b>Origin: </b>
+                          {booking.riderOrigin}
+                        </p>
+                        <p>
+                          <b>Destination: </b>
+                          {booking.riderDestination}
+                        </p>
                       </Card.Text>
                       <Button
                         variant="success"
@@ -229,6 +293,8 @@ const PickRide = () => {
       >
         <Marker
           position={center}
+          clickable={false}
+          zIndex={9}
           options={{
             icon: {
               url: "https://d1a3f4spazzrp4.cloudfront.net/car-types/map70px/product/map-uberx.png",
@@ -242,7 +308,7 @@ const PickRide = () => {
             key={i}
             position={booking.location}
             clickable={false}
-            zIndex={1}
+            zIndex={9}
             options={{
               // icon: CarIcon,
               icon: {
@@ -257,7 +323,10 @@ const PickRide = () => {
           <DirectionsRenderer
             directions={driverDirectionsResponse}
             options={{
-              polylineOptions: { strokeColor: "black" },
+              polylineOptions: {
+                strokeColor: "black",
+                strokeOpacity: "1",
+              },
               suppressMarkers: true,
             }}
           />
@@ -275,11 +344,13 @@ const PickRide = () => {
       <PickModal
         riderName={riderName}
         riderContact={riderContact}
-        riderDistance={riderDistance}
-        riderDuration={riderDuration}
+        distance={distance}
+        duration={duration}
         fare={riderFare}
         show={show}
         handleClose={handleClose}
+        rideStatus={rideStatus}
+        setRideStatus={setRideStatus}
       />
     </div>
   );

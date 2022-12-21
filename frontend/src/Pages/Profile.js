@@ -7,6 +7,7 @@ import {
   faMobile,
   faPen,
   faPowerOff,
+  faStar,
 } from "@fortawesome/free-solid-svg-icons";
 
 const Profile = () => {
@@ -17,6 +18,7 @@ const Profile = () => {
   const [curPassword, setCurPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [role, setRole] = useState("");
+  const [avgRating, setAvgRating] = useState(0);
 
   const [edit, setEdit] = useState(null);
   const [show, setShow] = useState(false);
@@ -35,6 +37,16 @@ const Profile = () => {
     setEdit("password");
   };
 
+  const averageRatings = (ratings) => {
+    let sum = 0;
+    console.log(ratings);
+    ratings?.map((rating) => {
+      sum += rating;
+    });
+    setAvgRating((sum / ratings?.length).toFixed(1));
+    console.log(avgRating);
+  };
+
   const getUserDetails = () => {
     const user = JSON.parse(localStorage.getItem("user"));
     console.log(user);
@@ -42,6 +54,17 @@ const Profile = () => {
     setEmail(user.email);
     setContact(user.contact);
     setVehicleNo(user.vehicleNo);
+
+    // console.log(user.rating);
+    averageRatings(user.ratings);
+
+    if (user.status === "offline") {
+      setOffline(true);
+      setOnline(false);
+    } else {
+      setOffline(false);
+      setOnline(true);
+    }
   };
 
   useEffect(() => {
@@ -88,14 +111,17 @@ const Profile = () => {
   const updateRiderPassword = async () => {
     let id = JSON.parse(localStorage.getItem("user"))._id;
     console.warn(name, email, contact);
-    let result = await fetch(`http://localhost:5000/rider/password/${id}`, {
-      method: "Put",
-      body: JSON.stringify({ newPassword }),
-      headers: {
-        "Content-Type": "Application/json",
-        authorization: JSON.parse(localStorage.getItem("token")),
-      },
-    });
+    let result = await fetch(
+      `http://localhost:5000/rider/updatepassword/${id}`,
+      {
+        method: "Put",
+        body: JSON.stringify({ curPassword, newPassword }),
+        headers: {
+          "Content-Type": "Application/json",
+          authorization: JSON.parse(localStorage.getItem("token")),
+        },
+      }
+    );
     result = await result.json();
     if (result) {
       setAlert(true);
@@ -104,14 +130,17 @@ const Profile = () => {
   const updateDriverPassword = async () => {
     let id = JSON.parse(localStorage.getItem("user"))._id;
     console.warn(name, email, contact);
-    let result = await fetch(`http://localhost:5000/driver/password/${id}`, {
-      method: "Put",
-      body: JSON.stringify({ newPassword }),
-      headers: {
-        "Content-Type": "Application/json",
-        authorization: JSON.parse(localStorage.getItem("token")),
-      },
-    });
+    let result = await fetch(
+      `http://localhost:5000/driver/updatepassword/${id}`,
+      {
+        method: "Put",
+        body: JSON.stringify({ curPassword, newPassword }),
+        headers: {
+          "Content-Type": "Application/json",
+          authorization: JSON.parse(localStorage.getItem("token")),
+        },
+      }
+    );
     result = await result.json();
     if (result) {
       setAlert(true);
@@ -159,19 +188,22 @@ const Profile = () => {
   };
 
   return (
-    <div>
-      <div>
+    <>
+      <>
         <Card className="text-center">
           <Card.Header as="h1">{name}</Card.Header>
           <Card.Body>
             <Card.Title>{String(role).toUpperCase()}</Card.Title>
             <Card.Text>
-              <p>
-                <FontAwesomeIcon className="mr-2" icon={faEnvelope} /> {email}
-              </p>
-              <p>
-                <FontAwesomeIcon className="mr-2" icon={faMobile} /> {contact}
-              </p>
+              <FontAwesomeIcon
+                className="mr-2 text-blue-500"
+                icon={faEnvelope}
+              />{" "}
+              {email}
+            </Card.Text>
+            <Card.Text>
+              <FontAwesomeIcon className="mr-2 text-black" icon={faMobile} />{" "}
+              {contact}
             </Card.Text>
             {role === "rider" && (
               <>
@@ -191,6 +223,13 @@ const Profile = () => {
             )}
             {role === "driver" && (
               <>
+                <Card.Text>
+                  <FontAwesomeIcon
+                    className="mr-2 text-yellow-400"
+                    icon={faStar}
+                  />
+                  {avgRating}
+                </Card.Text>
                 <Button
                   className="mr-2"
                   variant="success"
@@ -232,8 +271,8 @@ const Profile = () => {
           </Card.Body>
         </Card>
         {alert && <Alert variant="success">Status Changed</Alert>}
-      </div>
-      <div>
+      </>
+      <>
         <Modal
           show={show}
           onHide={handleClose}
@@ -252,10 +291,12 @@ const Profile = () => {
           </Modal.Header>
           <Modal.Body>
             {edit === "profile" ? (
-              <div>
+              <>
                 <Form>
                   <Form.Group className="mb-3">
-                    <Form.Label>Full Name</Form.Label>
+                    <Form.Label>
+                      <b>Full Name</b>
+                    </Form.Label>
                     <Form.Control
                       type="text"
                       value={name}
@@ -263,23 +304,31 @@ const Profile = () => {
                     />
                   </Form.Group>
                   <Form.Group className="mb-3">
-                    <Form.Label>Contact</Form.Label>
+                    <Form.Label>
+                      <b>Contact</b>
+                    </Form.Label>
                     <Form.Control
                       type="text"
                       value={contact}
                       onChange={(e) => setContact(e.target.value)}
                     />
                   </Form.Group>
+                  {role === "driver" && (
+                    <Form.Group className="mb-3">
+                      <Form.Label>
+                        <b>Vehicle No</b>
+                      </Form.Label>
+                      <Form.Control
+                        type="text"
+                        value={vehicleNo}
+                        onChange={(e) => setVehicleNo(e.target.value)}
+                      />
+                    </Form.Group>
+                  )}
                   <Form.Group className="mb-3">
-                    <Form.Label>Vehicle No</Form.Label>
-                    <Form.Control
-                      type="text"
-                      value={vehicleNo}
-                      onChange={(e) => setVehicleNo(e.target.value)}
-                    />
-                  </Form.Group>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Email</Form.Label>
+                    <Form.Label>
+                      <b>Email</b>
+                    </Form.Label>
                     <Form.Control
                       type="text"
                       value={email}
@@ -287,12 +336,14 @@ const Profile = () => {
                     />
                   </Form.Group>
                 </Form>
-              </div>
+              </>
             ) : (
-              <div>
+              <>
                 <Form>
                   <Form.Group className="mb-3" controlId="formBasicPassword">
-                    <Form.Label>Current</Form.Label>
+                    <Form.Label>
+                      <b>Current</b>
+                    </Form.Label>
                     <Form.Control
                       type="password"
                       value={curPassword}
@@ -300,7 +351,9 @@ const Profile = () => {
                     />
                   </Form.Group>
                   <Form.Group className="mb-3" controlId="formBasicPassword">
-                    <Form.Label>New</Form.Label>
+                    <Form.Label>
+                      <b>New</b>
+                    </Form.Label>
                     <Form.Control
                       type="password"
                       value={newPassword}
@@ -308,48 +361,48 @@ const Profile = () => {
                     />
                   </Form.Group>
                 </Form>
-              </div>
+              </>
             )}
           </Modal.Body>
           <Modal.Footer>
             {edit === "profile" ? (
-              <div>
+              <>
                 <Button className="mr-1" variant="danger" onClick={handleClose}>
                   Cancel
                 </Button>
                 {role === "rider" ? (
-                  <div>
+                  <>
                     <Button variant="success" onClick={updateRider}>
                       Save
                     </Button>
-                  </div>
+                  </>
                 ) : (
-                  <div>
+                  <>
                     <Button variant="success" onClick={updateDriver}>
                       Save
                     </Button>
-                  </div>
+                  </>
                 )}
-              </div>
+              </>
             ) : (
-              <div>
+              <>
                 <Button className="mr-1" variant="danger" onClick={handleClose}>
                   Cancel
                 </Button>
                 {role === "rider" ? (
-                  <div>
+                  <>
                     <Button variant="success" onClick={updateRiderPassword}>
                       Save
                     </Button>
-                  </div>
+                  </>
                 ) : (
-                  <div>
+                  <>
                     <Button variant="success" onClick={updateDriverPassword}>
                       Save
                     </Button>
-                  </div>
+                  </>
                 )}
-              </div>
+              </>
             )}
           </Modal.Footer>
           {alert && (
@@ -358,8 +411,8 @@ const Profile = () => {
             </Alert>
           )}
         </Modal>
-      </div>
-    </div>
+      </>
+    </>
   );
 };
 

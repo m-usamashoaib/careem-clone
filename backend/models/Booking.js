@@ -13,7 +13,6 @@ const bookingSchema = new mongoose.Schema({
   driverContact: Number,
   driverVehicle: String,
   status: String,
-  rating: Number,
 });
 
 module.exports = mongoose.model("bookings", bookingSchema);

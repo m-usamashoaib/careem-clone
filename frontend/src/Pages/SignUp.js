@@ -11,13 +11,18 @@ import {
 } from "mdb-react-ui-kit";
 
 const SignUp = () => {
+  // State that is used to store errors
   const [errors, setErrors] = useState({
     name: null,
     email: null,
     contact: null,
     password: null,
   });
+
+  // For navigating somewhere
   const navigate = useNavigate();
+
+  // State that is storing the values user is entering
   const [user, setUser] = useState({
     name: "",
     contact: "",
@@ -27,6 +32,7 @@ const SignUp = () => {
   });
 
   useEffect(() => {
+    // Getting role of the user from the local storage and then redirecting the user to the specifeid page
     const role = JSON.parse(localStorage.getItem("role"));
     // console.log(auth);
     if (role) {
@@ -38,11 +44,14 @@ const SignUp = () => {
     }
   });
 
+  // Function that is changing the values of the user
   const handleChange = (e) => {
     const name = e.target.name;
     const value = e.target.value;
     setUser({ ...user, [name]: value });
   };
+
+  //Function that validates the values that user have enntered
   const validate = (user) => {
     const { name, contact, email, password } = user;
     if (!name || !contact | !email | !password) {
@@ -57,6 +66,7 @@ const SignUp = () => {
     return true;
   };
 
+  //When a rider signs up this function is called and it sends the data of user to the backend.
   const riderSignUp = async () => {
     const { name, contact, email, password } = user;
     if (validate(user)) {
@@ -75,16 +85,22 @@ const SignUp = () => {
       });
       result = await result.json();
       console.warn(result);
-      localStorage.setItem("user", JSON.stringify(result.result));
-      localStorage.setItem("token", JSON.stringify(result.auth));
-      localStorage.setItem("role", JSON.stringify(result.role));
+      if (result.auth) {
+        //Setting the values in local storage for future use.
+        localStorage.setItem("user", JSON.stringify(result.result));
+        localStorage.setItem("token", JSON.stringify(result.auth));
+        localStorage.setItem("role", JSON.stringify(result.role));
 
-      navigate("/bookride");
+        navigate("/bookride");
+      } else {
+        alert(result.result);
+      }
     } else {
       return;
     }
   };
 
+  //When a driver signs up this function is called.
   const driverSignup = async () => {
     let { name, contact, vehicleNo, email, password } = user;
     vehicleNo = vehicleNo.toUpperCase();
@@ -109,11 +125,17 @@ const SignUp = () => {
       });
       result = await result.json();
       console.warn(result);
-      localStorage.setItem("user", JSON.stringify(result.result));
-      localStorage.setItem("token", JSON.stringify(result.auth));
-      localStorage.setItem("role", JSON.stringify(result.role));
 
-      navigate("/pickride");
+      if (result.auth) {
+        //Setting the values in local storage for future use.
+        localStorage.setItem("user", JSON.stringify(result.result));
+        localStorage.setItem("token", JSON.stringify(result.auth));
+        localStorage.setItem("role", JSON.stringify(result.role));
+
+        navigate("/pickride");
+      } else {
+        alert(result.result);
+      }
     } else {
       return;
     }
@@ -143,9 +165,12 @@ const SignUp = () => {
                 required
                 autoComplete="off"
               />
+
+              {/* When name feild is empty the error is shown */}
               {errors.name && !user.name ? (
                 <p className="text-red-500">{errors.name}</p>
               ) : null}
+
               <MDBInput
                 wrapperClass="mb-4 w-100"
                 label="Contact"
@@ -158,9 +183,12 @@ const SignUp = () => {
                 required
                 autoComplete="off"
               />
+
+              {/* When contact feild is empty the error is shown */}
               {errors.contact && !user.contact ? (
                 <p className="text-red-500">{errors.contact}</p>
               ) : null}
+
               <MDBInput
                 wrapperClass="mb-4 w-100"
                 label="Vehicle No. (for Drivers)"
@@ -172,6 +200,7 @@ const SignUp = () => {
                 onChange={handleChange}
                 autoComplete="off"
               />
+
               <MDBInput
                 wrapperClass="mb-4 w-100"
                 label="Email address"
@@ -184,9 +213,12 @@ const SignUp = () => {
                 required
                 autoComplete="off"
               />
+
+              {/* When email feild is empty the error is shown */}
               {errors.email && !user.email ? (
                 <p className="text-red-500">{errors.email}</p>
               ) : null}
+
               <MDBInput
                 wrapperClass="mb-4 w-100"
                 label="Password"
@@ -198,6 +230,8 @@ const SignUp = () => {
                 required
                 autoComplete="off"
               />
+
+              {/* When password feild is empty the error is shown */}
               {errors.password && !user.password ? (
                 <p className="text-red-500">{errors.password}</p>
               ) : null}
@@ -205,7 +239,9 @@ const SignUp = () => {
               <MDBBtn color="success" size="lg" onClick={riderSignUp}>
                 Sign Up as a Rider
               </MDBBtn>
+
               <hr className="my-1" />
+
               <MDBBtn color="success" size="lg" onClick={driverSignup}>
                 Sign Up as a Driver
               </MDBBtn>

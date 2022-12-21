@@ -17,7 +17,6 @@ import { faUser } from "@fortawesome/free-regular-svg-icons";
 import {
   faRightToBracket,
   faRightFromBracket,
-  faUserTie,
 } from "@fortawesome/free-solid-svg-icons";
 
 const Nav = () => {

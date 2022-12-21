@@ -15,12 +15,15 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
 }
+
+/* This gives style to the map */
 .map-container {
   width: 50%;
   height: 80%vh;
   margin: 20px;
 }
 
+/* This disables the range of input number */
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
   -webkit-appearance: none;

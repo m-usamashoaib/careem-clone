@@ -7,6 +7,7 @@ const driverSchema = new mongoose.Schema({
   password: String,
   vehicleNo: String,
   status: String,
+  ratings: Array,
 });
 
 driverSchema.pre("save", async function (next) {

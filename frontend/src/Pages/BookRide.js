@@ -7,7 +7,7 @@ import {
   DirectionsRenderer,
 } from "@react-google-maps/api";
 import Geocode from "react-geocode";
-import { Alert, Button, Form } from "react-bootstrap";
+import { Button, Form } from "react-bootstrap";
 import RideModal from "../Components/RideModal";
 
 let center = {};
@@ -41,6 +41,7 @@ const BookRide = () => {
   const [driverVehicle, setDriverVehicle] = useState("");
   const [driverDistance, setDriverDistance] = useState("");
   const [driverDuration, setDriverDuration] = useState("");
+  const [avgRating, setAvgRating] = useState(0);
 
   const [show, setShow] = useState(false);
   const [fareDisabled, setFareDisabled] = useState(true);
@@ -71,9 +72,15 @@ const BookRide = () => {
     // console.log(duration);
 
     // console.log(tripDistance);
-    setFare(baseRate + Number(tripDistance) * 11 + Number(tripDuration) * 4);
+    setFare(
+      Math.floor(
+        baseRate + Number(tripDistance) * 20 + Number(tripDuration) * 10
+      )
+    );
     setRecommendedFare(
-      baseRate + Number(tripDistance) * 11 + Number(tripDuration) * 4
+      Math.floor(
+        baseRate + Number(tripDistance) * 20 + Number(tripDuration) * 10
+      )
     );
     setDriversDisabled(false);
   }
@@ -90,25 +97,22 @@ const BookRide = () => {
     result = await result.json();
     // console.log(result);
     for (let i = 0; i < result.length; i++) {
-      if (result[i].status !== "offline") {
-        freeDrivers.push(result[i]);
-      }
+      freeDrivers.push(result[i]);
     }
 
-    console.log(freeDrivers);
+    // console.log(freeDrivers);
   }
 
   const request = async () => {
     let user = JSON.parse(localStorage.getItem("user"));
     // user = Object(user);
-    console.log(user);
+    // console.log(user);
     let result = await fetch("http://localhost:5000/addbooking", {
       method: "post",
       body: JSON.stringify({
         riderName: user.name,
         riderContact: user.contact,
         riderOrigin: originRef.current.value,
-        riderDestination: destinationRef.current.value,
         riderDestination: destinationRef.current.value,
         duration: Number(duration.split(" ")[0]),
         distance: Number(distance.split(" ")[0]),
@@ -118,7 +122,6 @@ const BookRide = () => {
         driverContact,
         driverVehicle,
         status: "request",
-        rating: null,
       }),
       headers: {
         "Content-Type": "application/json",
@@ -126,94 +129,117 @@ const BookRide = () => {
       },
     });
     result = await result.json();
-    console.warn(result.booking);
+    // console.warn(result.booking);
     localStorage.setItem("booking", JSON.stringify(result.booking));
     handleShow();
   };
 
   async function calculateRoute(e) {
     e.preventDefault();
-    if (originRef.current.value === "" || destinationRef.current.value === "") {
-      return;
+    try {
+      if (
+        originRef.current.value === "" ||
+        destinationRef.current.value === ""
+      ) {
+        return;
+      }
+      const routeDirectionsService = new window.google.maps.DirectionsService();
+      const results = await routeDirectionsService.route({
+        origin: originRef.current.value,
+        destination: destinationRef.current.value,
+        travelMode: window.google.maps.TravelMode.DRIVING,
+      });
+      setRouteDirectionsResponse(results);
+      setDistance(results.routes[0].legs[0].distance.text);
+      setDuration(results.routes[0].legs[0].duration.text);
+      setFareDisabled(false);
+      marker.setMap(null);
+    } catch {
+      alert("No route found between these locations.");
     }
-    const routeDirectionsService = new window.google.maps.DirectionsService();
-    const results = await routeDirectionsService.route({
-      origin: originRef.current.value,
-      destination: destinationRef.current.value,
-      travelMode: window.google.maps.TravelMode.DRIVING,
-    });
-    setRouteDirectionsResponse(results);
-    setDistance(results.routes[0].legs[0].distance.text);
-    setDuration(results.routes[0].legs[0].duration.text);
-    setFareDisabled(false);
   }
+  const averageRatings = (ratings) => {
+    let sum = 0;
+    console.log(ratings);
+    ratings?.map((rating) => {
+      sum += rating;
+    });
+    setAvgRating((sum / ratings?.length).toFixed(1));
+    console.log(avgRating);
+  };
 
   function searchDriver(e) {
-    console.log(fare, recommendedFare);
-    if (fare < recommendedFare) {
-      alert("Please enter value greater then recommended value");
+    // console.log(fare, recommendedFare);
+    if (freeDrivers.length === 0) {
+      alert("No Driver is free at the moment");
     } else {
-      setRequestDisabled(false);
-      freeDrivers.map((freeDriver) => {
-        if (freeDriver.status === "free") {
-          Geocode.fromLatLng(
-            freeDriver.location.lat,
-            freeDriver.location.lng
-          ).then((response) => {
-            const driverAddress = response.results[0].formatted_address;
-            console.log(driverAddress);
-            const driverDirectionsService =
-              new window.google.maps.DirectionsService();
-            driverDirectionsService
-              .route({
-                origin: originRef.current.value,
-                destination: driverAddress,
-                travelMode: window.google.maps.TravelMode.DRIVING,
-              })
-              .then((results) => {
-                setDriverDirectionsResponse(results);
-                setDriverDistance(results.routes[0].legs[0].distance.text);
-                setDriverDuration(results.routes[0].legs[0].duration.text);
-                setDriverName(freeDriver.name);
-                setDriverContact(freeDriver.contact);
-                setDriverVehicle(freeDriver.vehicleNo);
-              });
-          });
-          return;
-        }
-      });
+      if (fare < recommendedFare) {
+        alert("Please enter value greater then recommended value");
+      } else {
+        setRequestDisabled(false);
+        console.log(freeDrivers);
+        freeDrivers.map((freeDriver) => {
+          if (freeDriver.status === "free") {
+            Geocode.fromLatLng(
+              freeDriver.location.lat,
+              freeDriver.location.lng
+            ).then((response) => {
+              const driverAddress = response.results[0].formatted_address;
+              console.log(driverAddress);
+              const driverDirectionsService =
+                new window.google.maps.DirectionsService();
+              driverDirectionsService
+                .route({
+                  origin: driverAddress,
+                  destination: originRef.current.value,
+                  travelMode: window.google.maps.TravelMode.DRIVING,
+                })
+                .then((results) => {
+                  setDriverDirectionsResponse(results);
+                  setDriverDistance(results.routes[0].legs[0].distance.text);
+                  setDriverDuration(results.routes[0].legs[0].duration.text);
+                  setDriverName(freeDriver.name);
+                  setDriverContact(freeDriver.contact);
+                  setDriverVehicle(freeDriver.vehicleNo);
+                  averageRatings(freeDriver.ratings);
+                });
+            });
+            // return;
+          }
+        });
+      }
+      e.preventDefault();
+      map.panTo(center);
     }
-    e.preventDefault();
-    map.panTo(center);
-  }
-
-  function clearRoute() {
-    setRouteDirectionsResponse(null);
-    setDistance("");
-    setDuration("");
-    originRef.current.value = "";
-    destinationRef.current.value = "";
   }
 
   return (
     <div className="flex">
       <div className=" w-1/2 m-5">
-        <Form.Label htmlFor="input">Pick Up</Form.Label>
+        <Form.Label htmlFor="input">
+          <b>Pick Up:</b>
+        </Form.Label>
         <Autocomplete>
           <Form.Control type="text" ref={originRef} />
         </Autocomplete>
-        <Form.Label htmlFor="input">Drop Off</Form.Label>
+        <Form.Label htmlFor="input">
+          <b>Drop Off:</b>
+        </Form.Label>
         <Autocomplete>
           <Form.Control type="text" ref={destinationRef} />
         </Autocomplete>
         <Button className="m-1" variant="success" onClick={calculateRoute}>
           show Route
         </Button>{" "}
-        <h6>Distance:</h6>
-        <p>{distance}</p>
-        <h6>Duration:</h6>
-        <p>{duration}</p>
-        <Form.Label htmlFor="input">Fare:</Form.Label>
+        <p>
+          <b>Distance:</b> {distance}
+        </p>
+        <p>
+          <b>Duration:</b> {duration}
+        </p>
+        <Form.Label htmlFor="input">
+          <b>Fare:</b>{" "}
+        </Form.Label>
         <Button
           className="m-1"
           variant="success"
@@ -256,20 +282,25 @@ const BookRide = () => {
           fullscreenControl: false,
         }}
         onLoad={(map) => setMap(map)}
-        onClick={(MouseEvent) => {
-          console.log(MouseEvent.latLng.toJSON());
-          Geocode.fromLatLng(
-            MouseEvent.latLng.toJSON().lat,
-            MouseEvent.latLng.toJSON().lng
-          ).then((response) => {
-            originRef = response.results[0].formatted_address;
-            // console.log(l);
-            // <Marker position={l} />;
-          });
-        }}
+        // onClick={(MouseEvent) => {
+        //   console.log(MouseEvent.latLng.toJSON());
+        //   Geocode.fromLatLng(
+        //     MouseEvent.latLng.toJSON().lat,
+        //     MouseEvent.latLng.toJSON().lng
+        //   ).then((response) => {
+        //     originRef = response.results[0].formatted_address;
+        //     console.log(l);
+        //     <Marker position={l} />;
+        //   });
+        // }}
         // onUnmount={(map) => setMap(null)}
       >
-        <Marker position={center} onLoad={(marker) => setMarker(marker)} />
+        <Marker
+          position={center}
+          clickable={false}
+          zIndex={9}
+          onLoad={(marker) => setMarker(marker)}
+        />
         {freeDrivers?.map((freeDriver, i) => (
           <Marker
             key={i}
@@ -302,7 +333,6 @@ const BookRide = () => {
               polylineOptions: {
                 strokeColor: "black",
                 strokeOpacity: "1",
-                strokeWeight: "2",
               },
               suppressMarkers: true,
             }}
@@ -312,11 +342,14 @@ const BookRide = () => {
       <RideModal
         rideStatus={rideStatus}
         setRideStatus={setRideStatus}
+        duration={duration}
         driverName={driverName}
         driverContact={driverContact}
         driverVehicle={driverVehicle}
         driverDistance={driverDistance}
         driverDuration={driverDuration}
+        driverRating={avgRating}
+        fare={fare}
         show={show}
         handleClose={handleClose}
         handleShow={handleShow}
