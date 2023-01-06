@@ -1,10 +1,12 @@
 const mongoose = require("mongoose");
-const bcrpyt = require("bcrypt");
+
+//Booking Schema
 const bookingSchema = new mongoose.Schema({
   riderName: String,
   riderOrigin: String,
   riderDestination: String,
   riderContact: Number,
+  riderEmail: String,
   duration: Number,
   distance: Number,
   fare: Number,
@@ -12,6 +14,7 @@ const bookingSchema = new mongoose.Schema({
   driverName: String,
   driverContact: Number,
   driverVehicle: String,
+  driverEmail: String,
   status: String,
 });
 

@@ -1,3 +1,17 @@
 const mongoose = require("mongoose");
-mongoose.connect("mongodb://127.0.0.1:27017/careemclone");
-console.log("Connected to Database");
+
+//Configurations to connect with the database
+module.exports = () => {
+  const connectionParams = {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  };
+  try {
+    mongoose.set("strictQuery", false);
+    mongoose.connect(process.env.MONGO_URL, connectionParams);
+    console.log("Connected to database successfully");
+  } catch (error) {
+    console.log(error);
+    console.log("Could not connect to database");
+  }
+};
