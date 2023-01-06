@@ -8,6 +8,7 @@ import {
 import Geocode from "react-geocode";
 import { Button, Card } from "react-bootstrap";
 import PickModal from "../Components/PickModal";
+import { BACKEND_URL } from "../env";
 
 // const center = { lat: 31.4544132, lng: 74.2766072 };
 let center = {};
@@ -20,18 +21,25 @@ const PickRide = () => {
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
   });
 
+  //Making a state to manage map and marker
   const [map, setMap] = useState(/**@type google.maps.Map*/ (null));
   const [marker, setMarker] = useState(/**@type google.maps.Marker*/ (null));
+
+  //State to store the directions of route
   const [routeDirectionsResponse, setRouteDirectionsResponse] = useState(null);
+
   const [distance, setDistance] = useState("");
   const [duration, setDuration] = useState("");
 
+  //State to store the directions of driver to origin
   const [driverDirectionsResponse, setDriverDirectionsResponse] =
     useState(null);
   // const [driverAddress, setDriverAddress] = useState(
   //   "PureLogics, Block R1 Block R 1 Phase 2 Johar Town, Lahore, Pakistan"
   // );
   // const [driverAddress, setDriverAddress] = useState(null);
+
+  //States to manage the ride details
   const [riderName, setRiderName] = useState("");
   const [riderContact, setRiderContact] = useState(null);
   const [riderDistance, setRiderDistance] = useState(0);
@@ -68,7 +76,7 @@ const PickRide = () => {
   async function getData() {
     let name = JSON.parse(localStorage.getItem("user")).name;
     bookings = [];
-    let result = await fetch(`http://localhost:5000/bookings/request/${name}`, {
+    let result = await fetch(`${BACKEND_URL}bookings/request/${name}`, {
       method: "get",
       headers: {
         "Content-Type": "application/json",
@@ -76,13 +84,14 @@ const PickRide = () => {
       },
     });
     result = await result.json();
-    console.log(result);
-    for (let i = 0; i < result.length; i++) {
-      bookings.push(result[i]);
+    console.log(result.data);
+    for (let i = 0; i < result.data.length; i++) {
+      bookings.push(result.data[i]);
     }
     console.log(bookings);
   }
 
+  //Function to show a route between the Origin and Destination of rider
   async function showRoute(e) {
     console.log(riderOrigin);
     console.log(riderDestination);
@@ -98,6 +107,7 @@ const PickRide = () => {
     setDuration(results.routes[0].legs[0].duration.text);
   }
 
+  //Function to set accept the ride when the driver accept a ride it will make directions between driver and origin
   async function acceptRide(id) {
     bookings.map((booking) => {
       if (booking._id === id) {
@@ -131,13 +141,17 @@ const PickRide = () => {
         );
         localStorage.setItem("booking", JSON.stringify(booking));
       }
+      return 0;
     });
-    let { _id } = JSON.parse(localStorage.getItem("booking"));
+
+    //Setting the status of ride to accepted
+    let booking = JSON.parse(localStorage.getItem("booking"));
     // console.log(_id);
-    let finishResult = await fetch(`http://localhost:5000/booking/${_id}`, {
+    let finishResult = await fetch(`${BACKEND_URL}bookings/${booking._id}`, {
       method: "put",
       body: JSON.stringify({
         status: "accepted",
+        booking,
       }),
       headers: {
         "Content-Type": "application/json",
@@ -147,9 +161,9 @@ const PickRide = () => {
     finishResult = await finishResult.json();
     console.warn(finishResult);
 
-    _id = JSON.parse(localStorage.getItem("user"))._id;
+    let _id = JSON.parse(localStorage.getItem("user"))._id;
     // console.log(_id);
-    let result = await fetch(`http://localhost:5000/driver/${_id}`, {
+    let result = await fetch(`${BACKEND_URL}driver/${_id}`, {
       method: "put",
       body: JSON.stringify({
         status: "inride",
@@ -167,10 +181,11 @@ const PickRide = () => {
     setAccepted(true);
   }
 
+  //Changing the status of ride to started
   const startRide = async () => {
     let { _id } = JSON.parse(localStorage.getItem("booking"));
     console.log(_id);
-    let result = await fetch(`http://localhost:5000/booking/${_id}`, {
+    let result = await fetch(`${BACKEND_URL}bookings/${_id}`, {
       method: "put",
       body: JSON.stringify({
         status: "started",
@@ -302,6 +317,7 @@ const PickRide = () => {
             },
           }}
           onLoad={(marker) => setMarker(marker)}
+          // onUnmount={marker.setMap(null)}
         />
         {bookings?.map((booking, i) => (
           <Marker

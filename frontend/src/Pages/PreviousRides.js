@@ -1,15 +1,19 @@
 import { faArrowRightLong } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useEffect, useState } from "react";
-import { Button, Card, ListGroup } from "react-bootstrap";
+import { Badge, Button, Card, ListGroup } from "react-bootstrap";
 import Loading from "react-loading";
 import DetailsModal from "../Components/DetailsModal";
+import { BACKEND_URL } from "../env";
 
+//Store the bookings in the array
 let bookings = [];
 
 const PreviousRides = () => {
   const [show, setShow] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  //State to manage the Bookings
   const [selectedBooking, setSelectedBooking] = useState({
     riderName: "",
     riderOrigin: "",
@@ -32,10 +36,11 @@ const PreviousRides = () => {
     setInterval(() => getHistory(), 60000);
   }, []);
 
+  //Getting the history of the user bookings
   async function getHistory() {
     bookings = [];
     let name = JSON.parse(localStorage.getItem("user")).name;
-    let result = await fetch(`http://localhost:5000/bookings/${name}`, {
+    let result = await fetch(`${BACKEND_URL}bookings/previous/${name}`, {
       method: "get",
       headers: {
         "Content-Type": "application/json",
@@ -44,13 +49,14 @@ const PreviousRides = () => {
     });
     result = await result.json();
     console.log(result);
-    for (let i = 0; i < result.length; i++) {
-      bookings.push(result[i]);
+    for (let i = 0; i < result.data.length; i++) {
+      bookings.push(result.data[i]);
       setLoading(false);
     }
     console.log(bookings[0].driverVehicle);
   }
 
+  //Function to see the details of the selected ride
   function viewDetails(id) {
     bookings.map((booking) => {
       if (booking._id === id) {
@@ -72,6 +78,7 @@ const PreviousRides = () => {
           status: booking.status,
         });
       }
+      return 0;
     });
     handleShow();
   }
@@ -89,6 +96,14 @@ const PreviousRides = () => {
                 <Card.Title>
                   <b>Booked by: </b>
                   {booking.riderName}
+                  <p className="text-sm">
+                    {booking.status === "cancelled" && (
+                      <Badge bg="danger">Cancelled</Badge>
+                    )}
+                    {booking.status === "completed" && (
+                      <Badge bg="success">Completed</Badge>
+                    )}
+                  </p>
                 </Card.Title>
                 <Card.Text>
                   <div>

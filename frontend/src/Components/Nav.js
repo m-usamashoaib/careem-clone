@@ -20,10 +20,13 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 const Nav = () => {
+  const navigate = useNavigate();
+
   const [showNavNoTogglerThird, setShowNavNoTogglerThird] = useState(false);
   const auth = JSON.parse(localStorage.getItem("user"));
   const role = JSON.parse(localStorage.getItem("role"));
-  const navigate = useNavigate();
+
+  //Logout function which clears the local storage
   const logout = () => {
     localStorage.clear();
     navigate("/register");

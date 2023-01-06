@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Modal, Button, Alert } from "react-bootstrap";
 import StarRating from "./StarRating";
 import ReactLoading from "react-loading";
+import { BACKEND_URL } from "../env";
 
 const RideModal = ({
   rideStatus,
@@ -17,25 +18,33 @@ const RideModal = ({
   show,
   handleClose,
 }) => {
+  //state to store the rating
   const [rating, setRating] = useState(null);
+
   const [disabled, setDisabled] = useState(false);
+
   useEffect(() => {
     // console.log(driverDuration.split("")[0]);
     // let time = Number(driverDuration.split(" ")[0] * 60);
     // console.log(time);
+
+    //checking the status of the ride after every second
     setInterval(() => {
       checkStatus();
     }, 1000);
+
+    //after 1 minute the cancel buttong will be greyed.
     setTimeout(() => {
       setDisabled(true);
     }, 300000);
   }, []);
 
+  //Checking the status of ride
   const checkStatus = async () => {
     if (localStorage.getItem("booking")) {
       let { _id } = JSON.parse(localStorage.getItem("booking"));
       // console.log(_id);
-      let result = await fetch(`http://localhost:5000/booking/${_id}`, {
+      let result = await fetch(`${BACKEND_URL}bookings/${_id}`, {
         method: "get",
         headers: {
           "Content-Type": "application/json",
@@ -43,8 +52,8 @@ const RideModal = ({
         },
       });
       result = await result.json();
-      // console.warn(result.booking[0].status);
-      setRideStatus(result.booking[0].status);
+      // console.warn(result.data);
+      setRideStatus(result.data[0].status);
       // localStorage.setItem("booking", JSON.stringify(result.booking));
       // localStorage.removeItem("booking");
       // localStorage.setItem("booking", JSON.stringify(result.booking));
@@ -53,25 +62,23 @@ const RideModal = ({
     }
   };
 
+  //Storing the rating to the database
   const giveRating = async () => {
     let { driverContact } = JSON.parse(localStorage.getItem("booking"));
     // console.log(_id);
-    let result = await fetch(
-      `http://localhost:5000/driver/rating/${driverContact}`,
-      {
-        method: "put",
-        body: JSON.stringify({
-          rating: rating,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-          authorization: JSON.parse(localStorage.getItem("token")),
-        },
-      }
-    );
+    let result = await fetch(`${BACKEND_URL}driver/rating/${driverContact}`, {
+      method: "put",
+      body: JSON.stringify({
+        rating: rating,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+        authorization: JSON.parse(localStorage.getItem("token")),
+      },
+    });
     result = await result.json();
     console.log(result);
-    console.log(rating);
+    // console.log(rating);
 
     localStorage.removeItem("booking");
     setTimeout(() => {
@@ -79,10 +86,11 @@ const RideModal = ({
     }, 3000);
   };
 
+  //Cancel Ride function sets the status of ride to cancel
   const cancelRide = async () => {
     let { _id } = JSON.parse(localStorage.getItem("booking"));
     console.log(_id);
-    let result = await fetch(`http://localhost:5000/booking/${_id}`, {
+    let result = await fetch(`${BACKEND_URL}bookings/${_id}`, {
       method: "put",
       body: JSON.stringify({
         status: "cancelled",
@@ -123,9 +131,11 @@ const RideModal = ({
             {rideStatus === "completed" && <>Ride Completed!</>}
           </Modal.Title>
         </Modal.Header>
-        <Modal.Body className="text-center">
+        <Modal.Body style={{ display: "inline-block" }} className="text-center">
           {rideStatus === "request" && (
-            <ReactLoading color={"Green"} height={"10%"} width={"100%"} />
+            <div className="inline-block w-20 h-20">
+              <ReactLoading color={"Green"} height={"10%"} width={"100%"} />
+            </div>
           )}
           {rideStatus === "accepted" && (
             <>

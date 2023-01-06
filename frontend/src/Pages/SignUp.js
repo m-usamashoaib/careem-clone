@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   MDBBtn,
@@ -8,20 +8,16 @@ import {
   MDBCard,
   MDBCardBody,
   MDBInput,
+  MDBTabs,
+  MDBTabsItem,
+  MDBTabsLink,
+  MDBTabsContent,
+  MDBTabsPane,
 } from "mdb-react-ui-kit";
+import swal from "sweetalert";
+import { BACKEND_URL } from "../env";
 
 const SignUp = () => {
-  // State that is used to store errors
-  const [errors, setErrors] = useState({
-    name: null,
-    email: null,
-    contact: null,
-    password: null,
-  });
-
-  // For navigating somewhere
-  const navigate = useNavigate();
-
   // State that is storing the values user is entering
   const [user, setUser] = useState({
     name: "",
@@ -31,18 +27,27 @@ const SignUp = () => {
     vehicleNo: "",
   });
 
-  useEffect(() => {
-    // Getting role of the user from the local storage and then redirecting the user to the specifeid page
-    const role = JSON.parse(localStorage.getItem("role"));
-    // console.log(auth);
-    if (role) {
-      if (role === "rider") {
-        navigate("/bookride");
-      } else if (role === "driver") {
-        navigate("/pickride");
-      }
-    }
+  // State that is used to store errors
+  const [errors, setErrors] = useState({
+    nameError: null,
+    emailError: null,
+    contactError: null,
+    passwordError: null,
+    vehicleNoError: null,
   });
+
+  // For navigating somewhere
+  const navigate = useNavigate();
+
+  const [fillActive, setFillActive] = useState("ridertab");
+
+  const handleFillClick = (value) => {
+    if (value === fillActive) {
+      return;
+    }
+
+    setFillActive(value);
+  };
 
   // Function that is changing the values of the user
   const handleChange = (e) => {
@@ -53,16 +58,61 @@ const SignUp = () => {
 
   //Function that validates the values that user have enntered
   const validate = (user) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
     const { name, contact, email, password } = user;
-    if (!name || !contact | !email | !password) {
+    if (!name) {
+      setErrors({ nameError: "*Name feild is required" });
+      return false;
+    } else if (name.trim().length === 0) {
+      setErrors({ nameError: "*Name must not contain only white spaces" });
+      return false;
+    }
+    if (!contact) {
+      setErrors({ contactError: "*Contact feild is required." });
+      return false;
+    } else if (contact.length !== 12) {
       setErrors({
-        name: "Please enter your name",
-        contact: "Please enter your contact",
-        email: "Please enter your email",
-        password: "Please enter your password",
+        contactError: "*Contact must be 12 digits.",
+      });
+      return false;
+    } else if (!contact.startsWith("92")) {
+      setErrors({
+        contactError: "*Contact must start wit 92.",
       });
       return false;
     }
+    if (!email) {
+      setErrors({ emailError: "*Email feild is required" });
+      return false;
+    } else if (!emailRegex.test(email)) {
+      setErrors({ emailError: "*Invalid Email." });
+      return false;
+    }
+    if (!password) {
+      setErrors({ passwordError: "*Password feild is required" });
+      return false;
+    } else if (password.trim().length === 0) {
+      setErrors({
+        passwordError: "*Password must not contain only white spaces",
+      });
+      return false;
+    } else if (password.length < 4) {
+      setErrors({
+        passwordError: "*Password must be more than 4 characters",
+      });
+      return false;
+    } else if (password.length > 10) {
+      setErrors({
+        passwordError: "*Password must not exceed 10 characters",
+      });
+      return false;
+    }
+    setErrors({
+      nameError: null,
+      emailError: null,
+      contactError: null,
+      passwordError: null,
+    });
     return true;
   };
 
@@ -70,14 +120,14 @@ const SignUp = () => {
   const riderSignUp = async () => {
     const { name, contact, email, password } = user;
     if (validate(user)) {
-      let result = await fetch("http://localhost:5000/rider/register", {
+      let result = await fetch(`${BACKEND_URL}rider/register`, {
         method: "post",
         body: JSON.stringify({
-          name,
+          name: name.trim(),
           contact,
-          email,
+          email: email.trim(),
           password,
-          status: "free",
+          verified: false,
         }),
         headers: {
           "Content-Type": "application/json",
@@ -85,15 +135,12 @@ const SignUp = () => {
       });
       result = await result.json();
       console.warn(result);
-      if (result.auth) {
-        //Setting the values in local storage for future use.
-        localStorage.setItem("user", JSON.stringify(result.result));
-        localStorage.setItem("token", JSON.stringify(result.auth));
-        localStorage.setItem("role", JSON.stringify(result.role));
 
-        navigate("/bookride");
+      if (result.data) {
+        swal("Success", result.message, "success");
+        navigate("/login");
       } else {
-        alert(result.result);
+        swal("Error", result.message, "error");
       }
     } else {
       return;
@@ -105,18 +152,28 @@ const SignUp = () => {
     let { name, contact, vehicleNo, email, password } = user;
     vehicleNo = vehicleNo.toUpperCase();
     if (validate(user)) {
+      let vehicleNoRegex = /^[A-Z]{3}[-][0-9]{4}$/i;
       if (!vehicleNo) {
-        alert("Please enter Vehicle No.");
+        setErrors({ vehicleNoError: "*Vehicle No feild is required." });
         return;
       }
-      let result = await fetch("http://localhost:5000/driver/register", {
+      if (!vehicleNoRegex.test(vehicleNo)) {
+        setErrors({ vehicleNoError: "*Invalid Vehicle No." });
+        return;
+      }
+      let result = await fetch(`${BACKEND_URL}driver/register`, {
         method: "post",
         body: JSON.stringify({
-          name,
+          name: name.trim(),
           contact,
           vehicleNo,
-          email,
+          email: email.trim(),
           password,
+          location: {
+            lat: 0,
+            lng: 0,
+          },
+          verified: false,
           status: "free",
         }),
         headers: {
@@ -126,15 +183,11 @@ const SignUp = () => {
       result = await result.json();
       console.warn(result);
 
-      if (result.auth) {
-        //Setting the values in local storage for future use.
-        localStorage.setItem("user", JSON.stringify(result.result));
-        localStorage.setItem("token", JSON.stringify(result.auth));
-        localStorage.setItem("role", JSON.stringify(result.role));
-
-        navigate("/pickride");
+      if (result.data) {
+        swal("Success", result.message, "success");
+        navigate("/login");
       } else {
-        alert(result.result);
+        swal("Error", result.message, "error");
       }
     } else {
       return;
@@ -149,103 +202,217 @@ const SignUp = () => {
             className="bg-white my-5 mx-auto"
             style={{ borderRadius: "1rem", maxWidth: "500px" }}
           >
-            <MDBCardBody className="p-5 w-100 d-flex flex-column">
-              <h2 className="fw-bold mb-2 text-center">Register</h2>
-              <p className=" mb-3">Please enter your details!</p>
+            <h2 className="fw-bold m-2 text-center">REGISTER</h2>
+            <MDBTabs fill className="mb-3">
+              <MDBTabsItem>
+                <MDBTabsLink
+                  onClick={() => handleFillClick("ridertab")}
+                  active={fillActive === "ridertab"}
+                >
+                  As a Rider
+                </MDBTabsLink>
+              </MDBTabsItem>
+              <MDBTabsItem>
+                <MDBTabsLink
+                  onClick={() => handleFillClick("drivertab")}
+                  active={fillActive === "drivertab"}
+                >
+                  As a Driver
+                </MDBTabsLink>
+              </MDBTabsItem>
+            </MDBTabs>
+            <MDBTabsContent>
+              <MDBTabsPane show={fillActive === "ridertab"}>
+                <MDBCardBody className="p-5 w-100 d-flex flex-column">
+                  <MDBInput
+                    wrapperClass="mb-4 w-100"
+                    label="Full Name"
+                    id="formControlLg"
+                    type="text"
+                    size="lg"
+                    name="name"
+                    value={user.name}
+                    onChange={handleChange}
+                    required
+                    autoComplete="off"
+                  />
 
-              <MDBInput
-                wrapperClass="mb-4 w-100"
-                label="Full Name"
-                id="formControlLg"
-                type="text"
-                size="lg"
-                name="name"
-                value={user.name}
-                onChange={handleChange}
-                required
-                autoComplete="off"
-              />
+                  {/* When name feild is empty the error is shown */}
+                  {errors.nameError ? (
+                    <p className="text-red-500 -mt-6 ml-1 text-xs">
+                      {errors.nameError}
+                    </p>
+                  ) : null}
 
-              {/* When name feild is empty the error is shown */}
-              {errors.name && !user.name ? (
-                <p className="text-red-500">{errors.name}</p>
-              ) : null}
+                  <MDBInput
+                    wrapperClass="mb-4 w-100"
+                    label="Contact No."
+                    placeholder="923xxxxxxxxx"
+                    type="number"
+                    size="lg"
+                    name="contact"
+                    value={user.contact}
+                    onChange={handleChange}
+                    required
+                    autoComplete="off"
+                  />
 
-              <MDBInput
-                wrapperClass="mb-4 w-100"
-                label="Contact"
-                placeholder="03xxxxxxxxx"
-                type="number"
-                size="lg"
-                name="contact"
-                value={user.contact}
-                onChange={handleChange}
-                required
-                autoComplete="off"
-              />
+                  {/* When contact feild is empty the error is shown */}
+                  {errors.contactError ? (
+                    <p className="text-red-500 -mt-6 ml-1 text-xs">
+                      {errors.contactError}
+                    </p>
+                  ) : null}
 
-              {/* When contact feild is empty the error is shown */}
-              {errors.contact && !user.contact ? (
-                <p className="text-red-500">{errors.contact}</p>
-              ) : null}
+                  <MDBInput
+                    wrapperClass="mb-4 w-100"
+                    label="Email address"
+                    placeholder="email@address.com"
+                    type="email"
+                    size="lg"
+                    name="email"
+                    value={user.email}
+                    onChange={handleChange}
+                    required
+                    autoComplete="off"
+                  />
 
-              <MDBInput
-                wrapperClass="mb-4 w-100"
-                label="Vehicle No. (for Drivers)"
-                placeholder="XXX-XXXX"
-                type="text"
-                size="lg"
-                name="vehicleNo"
-                value={user.vehicleNo}
-                onChange={handleChange}
-                autoComplete="off"
-              />
+                  {/* When email feild is empty the error is shown */}
+                  {errors.emailError ? (
+                    <p className="text-red-500 -mt-6 ml-1 text-xs">
+                      {errors.emailError}
+                    </p>
+                  ) : null}
 
-              <MDBInput
-                wrapperClass="mb-4 w-100"
-                label="Email address"
-                placeholder="email@address.com"
-                type="email"
-                size="lg"
-                name="email"
-                value={user.email}
-                onChange={handleChange}
-                required
-                autoComplete="off"
-              />
+                  <MDBInput
+                    wrapperClass="mb-4 w-100"
+                    label="Password"
+                    type="password"
+                    size="lg"
+                    name="password"
+                    value={user.password}
+                    onChange={handleChange}
+                    required
+                    autoComplete="off"
+                  />
 
-              {/* When email feild is empty the error is shown */}
-              {errors.email && !user.email ? (
-                <p className="text-red-500">{errors.email}</p>
-              ) : null}
+                  {/* When password feild is empty the error is shown */}
+                  {errors.passwordError ? (
+                    <p className="text-red-500 -mt-6 ml-1 text-xs">
+                      {errors.passwordError}
+                    </p>
+                  ) : null}
 
-              <MDBInput
-                wrapperClass="mb-4 w-100"
-                label="Password"
-                type="password"
-                size="lg"
-                name="password"
-                value={user.password}
-                onChange={handleChange}
-                required
-                autoComplete="off"
-              />
+                  <MDBBtn color="success" size="lg" onClick={riderSignUp}>
+                    Sign Up
+                  </MDBBtn>
+                </MDBCardBody>
+              </MDBTabsPane>
+              <MDBTabsPane show={fillActive === "drivertab"}>
+                <MDBCardBody className="p-5 w-100 d-flex flex-column">
+                  <MDBInput
+                    wrapperClass="mb-4 w-100"
+                    label="Full Name"
+                    id="formControlLg"
+                    type="text"
+                    size="lg"
+                    name="name"
+                    value={user.name}
+                    onChange={handleChange}
+                    required
+                    autoComplete="off"
+                  />
 
-              {/* When password feild is empty the error is shown */}
-              {errors.password && !user.password ? (
-                <p className="text-red-500">{errors.password}</p>
-              ) : null}
+                  {/* When name feild is empty the error is shown */}
+                  {errors.nameError ? (
+                    <p className="text-red-500 -mt-6 ml-1 text-xs">
+                      {errors.nameError}
+                    </p>
+                  ) : null}
 
-              <MDBBtn color="success" size="lg" onClick={riderSignUp}>
-                Sign Up as a Rider
-              </MDBBtn>
+                  <MDBInput
+                    wrapperClass="mb-4 w-100"
+                    label="Contact No."
+                    placeholder="923xxxxxxxxx"
+                    type="number"
+                    size="lg"
+                    name="contact"
+                    value={user.contact}
+                    onChange={handleChange}
+                    required
+                    autoComplete="off"
+                  />
 
-              <hr className="my-1" />
+                  {/* When contact feild is empty the error is shown */}
+                  {errors.contactError ? (
+                    <p className="text-red-500 -mt-6 ml-1 text-xs">
+                      {errors.contactError}
+                    </p>
+                  ) : null}
 
-              <MDBBtn color="success" size="lg" onClick={driverSignup}>
-                Sign Up as a Driver
-              </MDBBtn>
-            </MDBCardBody>
+                  <MDBInput
+                    wrapperClass="mb-4 w-100"
+                    label="Vehicle No."
+                    placeholder="XXX-XXXX"
+                    type="text"
+                    size="lg"
+                    name="vehicleNo"
+                    value={user.vehicleNo}
+                    onChange={handleChange}
+                    autoComplete="off"
+                  />
+                  {/* When contact feild is empty the error is shown */}
+                  {errors.vehicleNoError ? (
+                    <p className="text-red-500 -mt-6 ml-1 text-xs">
+                      {errors.vehicleNoError}
+                    </p>
+                  ) : null}
+
+                  <MDBInput
+                    wrapperClass="mb-4 w-100"
+                    label="Email address"
+                    placeholder="email@address.com"
+                    type="email"
+                    size="lg"
+                    name="email"
+                    value={user.email}
+                    onChange={handleChange}
+                    required
+                    autoComplete="off"
+                  />
+
+                  {/* When email feild is empty the error is shown */}
+                  {errors.emailError ? (
+                    <p className="text-red-500 -mt-6 ml-1 text-xs">
+                      {errors.emailError}
+                    </p>
+                  ) : null}
+
+                  <MDBInput
+                    wrapperClass="mb-4 w-100"
+                    label="Password"
+                    type="password"
+                    size="lg"
+                    name="password"
+                    value={user.password}
+                    onChange={handleChange}
+                    required
+                    autoComplete="off"
+                  />
+
+                  {/* When password feild is empty the error is shown */}
+                  {errors.passwordError ? (
+                    <p className="text-red-500 -mt-6 ml-1 text-xs">
+                      {errors.passwordError}
+                    </p>
+                  ) : null}
+
+                  <MDBBtn color="success" size="lg" onClick={driverSignup}>
+                    Sign Up
+                  </MDBBtn>
+                </MDBCardBody>
+              </MDBTabsPane>
+            </MDBTabsContent>
           </MDBCard>
         </MDBCol>
       </MDBRow>

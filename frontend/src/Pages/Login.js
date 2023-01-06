@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   MDBBtn,
@@ -9,16 +9,55 @@ import {
   MDBCardBody,
   MDBInput,
   MDBCheckbox,
+  MDBTabs,
+  MDBTabsItem,
+  MDBTabsLink,
+  MDBTabsContent,
+  MDBTabsPane,
 } from "mdb-react-ui-kit";
+import swal from "sweetalert";
+import { BACKEND_URL } from "../env";
 
 const Login = () => {
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const navigate = useNavigate();
+  const [errors, setErrors] = useState({
+    emailError: null,
+    passwordError: null,
+  });
+
+  const [fillActive, setFillActive] = useState("ridertab");
+
+  const handleFillClick = (value) => {
+    if (value === fillActive) {
+      return;
+    }
+
+    setFillActive(value);
+  };
+
+  const validate = (email, password) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
+    if (!email) {
+      setErrors({ emailError: "*Email feild is required" });
+      return false;
+    } else if (!regex.test(email)) {
+      setErrors({ emailError: "*Invalid Email." });
+      return false;
+    }
+    if (!password) {
+      setErrors({ passwordError: "*Password feild is required" });
+      return false;
+    }
+
+    setErrors({ emailError: null, passwordError: null });
+    return true;
+  };
 
   useEffect(() => {
     const role = JSON.parse(localStorage.getItem("role"));
-    console.log(role);
+    // console.log(role);
     if (role) {
       if (role === "rider") {
         navigate("/bookride");
@@ -29,30 +68,34 @@ const Login = () => {
   });
 
   const riderLogin = async () => {
-    let result = await fetch("http://localhost:5000/rider/login", {
-      method: "post",
-      body: JSON.stringify({ email, password }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    result = await result.json();
-    console.log(result);
-    if (result.auth) {
-      localStorage.setItem("user", JSON.stringify(result.rider));
-      localStorage.setItem("token", JSON.stringify(result.auth));
-      localStorage.setItem("role", JSON.stringify(result.role));
-      if (result.role === "rider") {
-        navigate("/bookride");
-      } else if (result.role === "driver") {
-        navigate("/pickride");
+    if (validate(email, password)) {
+      let result = await fetch(`${BACKEND_URL}rider/login`, {
+        method: "post",
+        body: JSON.stringify({ email, password }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      result = await result.json();
+      console.log(result);
+      if (result.data) {
+        swal("Success!", result.message, "success");
+        localStorage.setItem("user", JSON.stringify(result.data.rider));
+        localStorage.setItem("token", JSON.stringify(result.data.auth));
+        localStorage.setItem("role", JSON.stringify(result.data.role));
+        if (result.data.role === "rider") {
+          navigate("/bookride");
+        } else if (result.data.role === "driver") {
+          navigate("/pickride");
+        }
+      } else {
+        swal("Error!", result.message, "error");
       }
-    } else {
-      alert(result.result);
     }
+    return;
   };
   const driverLogin = async () => {
-    let result = await fetch("http://localhost:5000/driver/login", {
+    let result = await fetch(`${BACKEND_URL}driver/login`, {
       method: "post",
       body: JSON.stringify({ email, password }),
       headers: {
@@ -61,17 +104,18 @@ const Login = () => {
     });
     result = await result.json();
     console.log(result);
-    if (result.auth) {
-      localStorage.setItem("user", JSON.stringify(result.driver));
-      localStorage.setItem("token", JSON.stringify(result.auth));
-      localStorage.setItem("role", JSON.stringify(result.role));
-      if (result.role === "rider") {
+    if (result.data) {
+      swal("Success!", result.message, "success");
+      localStorage.setItem("user", JSON.stringify(result.data.driver));
+      localStorage.setItem("token", JSON.stringify(result.data.auth));
+      localStorage.setItem("role", JSON.stringify(result.data.role));
+      if (result.data.role === "rider") {
         navigate("/bookride");
-      } else if (result.role === "driver") {
+      } else if (result.data.role === "driver") {
         navigate("/pickride");
       }
     } else {
-      alert(result.result);
+      swal("Error!", result.message, "error");
     }
   };
 
@@ -83,45 +127,105 @@ const Login = () => {
             className="bg-white my-5 mx-auto"
             style={{ borderRadius: "1rem", maxWidth: "500px" }}
           >
-            <MDBCardBody className="p-5 w-100 d-flex flex-column">
-              <h2 className="fw-bold mb-2 text-center">Login</h2>
-              <p className=" mb-3">Please enter your login and password!</p>
+            <h2 className="fw-bold m-2 text-center">LOGIN</h2>
+            <MDBTabs fill className=" mb-3">
+              <MDBTabsItem>
+                <MDBTabsLink
+                  onClick={() => handleFillClick("ridertab")}
+                  active={fillActive === "ridertab"}
+                >
+                  As a Rider
+                </MDBTabsLink>
+              </MDBTabsItem>
+              <MDBTabsItem>
+                <MDBTabsLink
+                  onClick={() => handleFillClick("drivertab")}
+                  active={fillActive === "drivertab"}
+                >
+                  As a Driver
+                </MDBTabsLink>
+              </MDBTabsItem>
+            </MDBTabs>
+            <MDBTabsContent>
+              <MDBTabsPane show={fillActive === "ridertab"}>
+                <MDBCardBody className="p-5 w-100 d-flex flex-column">
+                  <MDBInput
+                    wrapperClass="mb-4 w-100"
+                    label="Email address"
+                    placeholder="email@address.com"
+                    autoComplete="off"
+                    type="email"
+                    size="lg"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                  {errors.emailError ? (
+                    <p className="text-red-500 -mt-6 ml-1 text-xs">
+                      {errors.emailError}
+                    </p>
+                  ) : null}
+                  <MDBInput
+                    wrapperClass="mb-4 w-100"
+                    label="Password"
+                    type="password"
+                    autoComplete="off"
+                    size="lg"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                  {errors.passwordError ? (
+                    <p className="text-red-500 -mt-6 ml-1 text-xs">
+                      {errors.passwordError}
+                    </p>
+                  ) : null}
 
-              <MDBInput
-                wrapperClass="mb-4 w-100"
-                label="Email address"
-                placeholder="email@address.com"
-                autoComplete="off"
-                type="email"
-                size="lg"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-              <MDBInput
-                wrapperClass="mb-4 w-100"
-                label="Password"
-                type="password"
-                autoComplete="off"
-                size="lg"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+                  <MDBCheckbox
+                    name="flexCheck"
+                    id="flexCheckDefault"
+                    className="mb-4"
+                    label="Remember password"
+                  />
 
-              <MDBCheckbox
-                name="flexCheck"
-                id="flexCheckDefault"
-                className="mb-4"
-                label="Remember password"
-              />
+                  <MDBBtn color="success" size="lg" onClick={riderLogin}>
+                    Login
+                  </MDBBtn>
+                </MDBCardBody>
+              </MDBTabsPane>
+              <MDBTabsPane show={fillActive === "drivertab"}>
+                <MDBCardBody className="p-5 w-100 d-flex flex-column">
+                  <MDBInput
+                    wrapperClass="mb-4 w-100"
+                    label="Email address"
+                    placeholder="email@address.com"
+                    autoComplete="off"
+                    type="email"
+                    size="lg"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                  <MDBInput
+                    wrapperClass="mb-4 w-100"
+                    label="Password"
+                    type="password"
+                    autoComplete="off"
+                    size="lg"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
 
-              <MDBBtn color="success" size="lg" onClick={riderLogin}>
-                Rider Login
-              </MDBBtn>
-              <hr className="my-1" />
-              <MDBBtn color="success" size="lg" onClick={driverLogin}>
-                Driver Login
-              </MDBBtn>
-            </MDBCardBody>
+                  <MDBCheckbox
+                    name="flexCheck"
+                    id="flexCheckDefault"
+                    className="mb-4"
+                    label="Remember password"
+                  />
+
+                  <MDBBtn color="success" size="lg" onClick={driverLogin}>
+                    Login
+                  </MDBBtn>
+                </MDBCardBody>
+              </MDBTabsPane>
+            </MDBTabsContent>
           </MDBCard>
         </MDBCol>
       </MDBRow>

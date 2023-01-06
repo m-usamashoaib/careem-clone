@@ -9,13 +9,16 @@ import {
 import Geocode from "react-geocode";
 import { Button, Form } from "react-bootstrap";
 import RideModal from "../Components/RideModal";
+import { BACKEND_URL } from "../env";
 
 let center = {};
 
 const places = ["places"];
 
+//Base rate is constant
 const baseRate = 100;
 
+//Array to store the drivers that are free at the moment
 let freeDrivers = [];
 
 const BookRide = () => {
@@ -39,6 +42,7 @@ const BookRide = () => {
   const [driverName, setDriverName] = useState("");
   const [driverContact, setDriverContact] = useState(null);
   const [driverVehicle, setDriverVehicle] = useState("");
+  const [driverEmail, setDriverEmail] = useState("");
   const [driverDistance, setDriverDistance] = useState("");
   const [driverDuration, setDriverDuration] = useState("");
   const [avgRating, setAvgRating] = useState(0);
@@ -55,6 +59,7 @@ const BookRide = () => {
   let destinationRef = useRef();
 
   useEffect(() => {
+    //Setting the map to the user current location
     navigator.geolocation.getCurrentPosition((position) => {
       center.lat = position.coords.latitude;
       center.lng = position.coords.longitude;
@@ -66,6 +71,7 @@ const BookRide = () => {
 
   if (!isLoaded) return <h1>Loading</h1>;
 
+  //Function to calculate the trip fare
   function calculateFare(distance, duration) {
     let tripDistance = distance.split(" ")[0];
     let tripDuration = duration.split(" ")[0];
@@ -77,6 +83,8 @@ const BookRide = () => {
         baseRate + Number(tripDistance) * 20 + Number(tripDuration) * 10
       )
     );
+
+    //Recommended fare will be shown to the rider.
     setRecommendedFare(
       Math.floor(
         baseRate + Number(tripDistance) * 20 + Number(tripDuration) * 10
@@ -85,9 +93,11 @@ const BookRide = () => {
     setDriversDisabled(false);
   }
 
+  //Function to get the free drivers from the database
   async function getData() {
     freeDrivers = [];
-    let result = await fetch("http://localhost:5000/drivers/free", {
+    // console.log(BACKEND_URL);
+    let result = await fetch(`${BACKEND_URL}driver/free`, {
       method: "get",
       headers: {
         "Content-Type": "application/json",
@@ -95,23 +105,25 @@ const BookRide = () => {
       },
     });
     result = await result.json();
-    // console.log(result);
-    for (let i = 0; i < result.length; i++) {
-      freeDrivers.push(result[i]);
+    console.log(result.data);
+    for (let i = 0; i < result.data.length; i++) {
+      freeDrivers.push(result.data[i]);
     }
 
-    // console.log(freeDrivers);
+    console.log(freeDrivers);
   }
 
+  //Storing the booking details into the database
   const request = async () => {
     let user = JSON.parse(localStorage.getItem("user"));
     // user = Object(user);
     // console.log(user);
-    let result = await fetch("http://localhost:5000/addbooking", {
+    let result = await fetch(`${BACKEND_URL}bookings/addbooking`, {
       method: "post",
       body: JSON.stringify({
         riderName: user.name,
         riderContact: user.contact,
+        riderEmail: user.email,
         riderOrigin: originRef.current.value,
         riderDestination: destinationRef.current.value,
         duration: Number(duration.split(" ")[0]),
@@ -120,6 +132,7 @@ const BookRide = () => {
         date: new Date(),
         driverName,
         driverContact,
+        driverEmail,
         driverVehicle,
         status: "request",
       }),
@@ -130,13 +143,15 @@ const BookRide = () => {
     });
     result = await result.json();
     // console.warn(result.booking);
-    localStorage.setItem("booking", JSON.stringify(result.booking));
+    localStorage.setItem("booking", JSON.stringify(result.data));
     handleShow();
   };
 
+  //Calculating the route between the origin and destination
   async function calculateRoute(e) {
     e.preventDefault();
     try {
+      //To check if the user didn't enter any location
       if (
         originRef.current.value === "" ||
         destinationRef.current.value === ""
@@ -158,16 +173,17 @@ const BookRide = () => {
       alert("No route found between these locations.");
     }
   }
+
+  //  Calculating the average rating of the driver
   const averageRatings = (ratings) => {
     let sum = 0;
     console.log(ratings);
-    ratings?.map((rating) => {
-      sum += rating;
-    });
+    ratings?.map((rating) => (sum += rating));
     setAvgRating((sum / ratings?.length).toFixed(1));
     console.log(avgRating);
   };
 
+  //Searching for the driver after the rider has requested a ride.
   function searchDriver(e) {
     // console.log(fare, recommendedFare);
     if (freeDrivers.length === 0) {
@@ -200,12 +216,13 @@ const BookRide = () => {
                   setDriverDuration(results.routes[0].legs[0].duration.text);
                   setDriverName(freeDriver.name);
                   setDriverContact(freeDriver.contact);
+                  setDriverEmail(freeDriver.email);
                   setDriverVehicle(freeDriver.vehicleNo);
                   averageRatings(freeDriver.ratings);
                 });
             });
-            // return;
           }
+          return 0;
         });
       }
       e.preventDefault();

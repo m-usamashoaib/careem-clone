@@ -1,5 +1,6 @@
 import React from "react";
 import { Alert, Button, Modal } from "react-bootstrap";
+import { BACKEND_URL } from "../env";
 
 const PickModal = ({
   riderName,
@@ -12,13 +13,15 @@ const PickModal = ({
   show,
   handleClose,
 }) => {
+  //Setting the status of ride to completed
   const finishRide = async () => {
-    let { _id } = JSON.parse(localStorage.getItem("booking"));
+    let booking = JSON.parse(localStorage.getItem("booking"));
     // console.log(_id);
-    let result = await fetch(`http://localhost:5000/booking/${_id}`, {
+    let result = await fetch(`${BACKEND_URL}bookings/${booking._id}`, {
       method: "put",
       body: JSON.stringify({
         status: "completed",
+        booking,
       }),
       headers: {
         "Content-Type": "application/json",
@@ -28,9 +31,9 @@ const PickModal = ({
     result = await result.json();
     console.warn(result);
 
-    _id = JSON.parse(localStorage.getItem("user"))._id;
+    let _id = JSON.parse(localStorage.getItem("user"))._id;
     // console.log(_id);
-    result = await fetch(`http://localhost:5000/driver/${_id}`, {
+    result = await fetch(`${BACKEND_URL}driver/${_id}`, {
       method: "put",
       body: JSON.stringify({
         status: "free",

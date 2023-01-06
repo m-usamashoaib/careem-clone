@@ -3,6 +3,7 @@ import { faStar } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const StarRating = ({ rating, setRating }) => {
+  //State to Change the color of stars on hover
   const [hover, setHover] = useState(null);
 
   return (

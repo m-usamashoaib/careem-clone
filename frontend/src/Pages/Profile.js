@@ -9,8 +9,11 @@ import {
   faPowerOff,
   faStar,
 } from "@fortawesome/free-solid-svg-icons";
+import { BACKEND_URL } from "../env";
+import swal from "sweetalert";
 
 const Profile = () => {
+  //States to manage the feilds
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [contact, setContact] = useState("");
@@ -20,33 +23,41 @@ const Profile = () => {
   const [role, setRole] = useState("");
   const [avgRating, setAvgRating] = useState(0);
 
+  //States to change the modal from edit password or edit other feilds
   const [edit, setEdit] = useState(null);
+
+  //States to manage the modal
   const [show, setShow] = useState(false);
+  const handleClose = () => setShow(false);
+  const handleShow = () => setShow(true);
+
+  //State to show the alert
   const [alert, setAlert] = useState(false);
+
+  //States to store the status of the driver
   const [offline, setOffline] = useState(false);
   const [online, setOnline] = useState(true);
 
-  const handleClose = () => setShow(false);
-  const handleShow = () => setShow(true);
   const editProfile = () => {
     handleShow();
     setEdit("profile");
   };
+
   const editPassword = () => {
     handleShow();
     setEdit("password");
   };
 
+  //Function which is calculating the average ratings of the driver from the rating array.
   const averageRatings = (ratings) => {
     let sum = 0;
     console.log(ratings);
-    ratings?.map((rating) => {
-      sum += rating;
-    });
+    ratings?.map((rating) => (sum += rating));
     setAvgRating((sum / ratings?.length).toFixed(1));
     console.log(avgRating);
   };
 
+  //Getting the details of the user and setting them into the states
   const getUserDetails = () => {
     const user = JSON.parse(localStorage.getItem("user"));
     console.log(user);
@@ -74,10 +85,11 @@ const Profile = () => {
     getUserDetails();
   }, []);
 
+  //Function to update the name email and contact of rider
   const updateRider = async () => {
     let id = JSON.parse(localStorage.getItem("user"))._id;
     console.warn(name, email, contact);
-    let result = await fetch(`http://localhost:5000/rider/${id}`, {
+    let result = await fetch(`${BACKEND_URL}rider/${id}`, {
       method: "Put",
       body: JSON.stringify({ name, email, contact }),
       headers: {
@@ -86,15 +98,20 @@ const Profile = () => {
       },
     });
     result = await result.json();
-    if (result) {
-      setAlert(true);
+    if (result.data) {
+      swal("Success", result.message, "success");
+      handleClose();
+      // setAlert(true);
+    } else {
+      swal("Error", result.message, "error");
     }
   };
 
+  //Function to update the details of driver.
   const updateDriver = async () => {
     let id = JSON.parse(localStorage.getItem("user"))._id;
     console.warn(name, email, contact);
-    let result = await fetch(`http://localhost:5000/driver/${id}`, {
+    let result = await fetch(`${BACKEND_URL}driver/${id}`, {
       method: "Put",
       body: JSON.stringify({ name, email, contact, vehicleNo }),
       headers: {
@@ -103,54 +120,65 @@ const Profile = () => {
       },
     });
     result = await result.json();
-    if (result) {
-      setAlert(true);
+    if (result.data) {
+      swal("Success", result.message, "success");
+      handleClose();
+      // setAlert(true);
+    } else {
+      swal("Error", result.message, "error");
     }
   };
 
+  //Function to change the password of rider
   const updateRiderPassword = async () => {
     let id = JSON.parse(localStorage.getItem("user"))._id;
     console.warn(name, email, contact);
-    let result = await fetch(
-      `http://localhost:5000/rider/updatepassword/${id}`,
-      {
-        method: "Put",
-        body: JSON.stringify({ curPassword, newPassword }),
-        headers: {
-          "Content-Type": "Application/json",
-          authorization: JSON.parse(localStorage.getItem("token")),
-        },
-      }
-    );
+    let result = await fetch(`${BACKEND_URL}rider/updatepassword/${id}`, {
+      method: "Put",
+      body: JSON.stringify({ curPassword, newPassword }),
+      headers: {
+        "Content-Type": "Application/json",
+        authorization: JSON.parse(localStorage.getItem("token")),
+      },
+    });
     result = await result.json();
-    if (result) {
-      setAlert(true);
-    }
-  };
-  const updateDriverPassword = async () => {
-    let id = JSON.parse(localStorage.getItem("user"))._id;
-    console.warn(name, email, contact);
-    let result = await fetch(
-      `http://localhost:5000/driver/updatepassword/${id}`,
-      {
-        method: "Put",
-        body: JSON.stringify({ curPassword, newPassword }),
-        headers: {
-          "Content-Type": "Application/json",
-          authorization: JSON.parse(localStorage.getItem("token")),
-        },
-      }
-    );
-    result = await result.json();
-    if (result) {
-      setAlert(true);
+    // console.log(result.message);
+    if (result.data) {
+      swal("Success", result.message, "success");
+      handleClose();
+      // setAlert(true);
+    } else {
+      swal("Error", result.message, "error");
     }
   };
 
+  //Function to update the password of the driver
+  const updateDriverPassword = async () => {
+    let id = JSON.parse(localStorage.getItem("user"))._id;
+    console.warn(name, email, contact);
+    let result = await fetch(`${BACKEND_URL}driver/updatepassword/${id}`, {
+      method: "Put",
+      body: JSON.stringify({ curPassword, newPassword }),
+      headers: {
+        "Content-Type": "Application/json",
+        authorization: JSON.parse(localStorage.getItem("token")),
+      },
+    });
+    result = await result.json();
+    if (result.data) {
+      swal("Success", result.message, "success");
+      handleClose();
+      // setAlert(true);
+    } else {
+      swal("Error", result.message, "error");
+    }
+  };
+
+  //Function to set status of driver to offline
   const offlineStatus = async () => {
     let id = JSON.parse(localStorage.getItem("user"))._id;
     console.warn(name, email, contact);
-    let result = await fetch(`http://localhost:5000/driver/${id}`, {
+    let result = await fetch(`${BACKEND_URL}driver/${id}`, {
       method: "Put",
       body: JSON.stringify({ status: "Offline" }),
       headers: {
@@ -159,7 +187,7 @@ const Profile = () => {
       },
     });
     result = await result.json();
-    if (result) {
+    if (result.data) {
       setAlert(true);
       setTimeout(() => setAlert(false), 3000);
       setOffline(true);
@@ -167,9 +195,10 @@ const Profile = () => {
     }
   };
 
+  //Function to set the statusof driver to online
   const onlineStatus = async () => {
     let id = JSON.parse(localStorage.getItem("user"))._id;
-    let result = await fetch(`http://localhost:5000/driver/${id}`, {
+    let result = await fetch(`${BACKEND_URL}driver/${id}`, {
       method: "Put",
       body: JSON.stringify({ status: "free" }),
       headers: {
@@ -179,7 +208,7 @@ const Profile = () => {
     });
     result = await result.json();
 
-    if (result) {
+    if (result.data) {
       setAlert(true);
       setTimeout(() => setAlert(false), 3000);
       setOnline(true);
