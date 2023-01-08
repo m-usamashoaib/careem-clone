@@ -4,6 +4,10 @@ import StarRating from "./StarRating";
 import ReactLoading from "react-loading";
 import { BACKEND_URL } from "../env";
 
+// import io from "socket.io-client";
+
+// // const socket = io.connect(`http://localhost:${PORT}`);
+
 const RideModal = ({
   rideStatus,
   setRideStatus,
@@ -17,6 +21,7 @@ const RideModal = ({
   fare,
   show,
   handleClose,
+  socket,
 }) => {
   //state to store the rating
   const [rating, setRating] = useState(null);
@@ -29,15 +34,20 @@ const RideModal = ({
     // console.log(time);
 
     //checking the status of the ride after every second
-    setInterval(() => {
-      checkStatus();
-    }, 1000);
+    // setInterval(() => {
+    //   checkStatus();
+    // }, 1000);
+
+    socket.on("r_status", (data) => {
+      console.log(data);
+      setRideStatus(data.rideStatus);
+    });
 
     //after 1 minute the cancel buttong will be greyed.
     setTimeout(() => {
       setDisabled(true);
     }, 300000);
-  }, []);
+  }, [socket]);
 
   //Checking the status of ride
   const checkStatus = async () => {
@@ -81,9 +91,7 @@ const RideModal = ({
     // console.log(rating);
 
     localStorage.removeItem("booking");
-    setTimeout(() => {
-      window.location.reload();
-    }, 3000);
+    window.location.reload();
   };
 
   //Cancel Ride function sets the status of ride to cancel
@@ -104,9 +112,7 @@ const RideModal = ({
     console.warn(result);
     setRideStatus("cancelled");
     localStorage.removeItem("booking");
-    setTimeout(() => {
-      window.location.reload();
-    }, 3000);
+    window.location.reload();
   };
   return (
     <div>

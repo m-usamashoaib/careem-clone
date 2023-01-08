@@ -8,14 +8,18 @@ import {
 import Geocode from "react-geocode";
 import { Button, Card } from "react-bootstrap";
 import PickModal from "../Components/PickModal";
-import { BACKEND_URL } from "../env";
+import { BACKEND_URL, PORT } from "../env";
+
+// import io from "socket.io-client";
+
+// const socket = io.connect(`http://localhost:${PORT}`);
 
 // const center = { lat: 31.4544132, lng: 74.2766072 };
 let center = {};
 
-let bookings = [];
+// let bookings = [];
 
-const PickRide = () => {
+const PickRide = ({ socket }) => {
   Geocode.setApiKey(process.env.REACT_APP_GOOGLE_MAPS_API_KEY);
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
@@ -52,6 +56,7 @@ const PickRide = () => {
 
   const [show, setShow] = useState(false);
   const [accepted, setAccepted] = useState(false);
+  const [bookings, setBookings] = useState([]);
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
@@ -67,29 +72,35 @@ const PickRide = () => {
     center.lat = user.location.lat;
     center.lng = user.location.lng;
     console.log(center);
-    getData();
-    setInterval(() => getData(), 10000);
   }, []);
+  useEffect(() => {
+    socket.on("d_request", (data) => {
+      console.log(data);
+      // setRideStatus(data.rideStatus);
+      setBookings([data]);
+    });
+  }, [socket]);
 
   if (!isLoaded) return <h1>Loading</h1>;
 
-  async function getData() {
-    let name = JSON.parse(localStorage.getItem("user")).name;
-    bookings = [];
-    let result = await fetch(`${BACKEND_URL}bookings/request/${name}`, {
-      method: "get",
-      headers: {
-        "Content-Type": "application/json",
-        authorization: JSON.parse(localStorage.getItem("token")),
-      },
-    });
-    result = await result.json();
-    console.log(result.data);
-    for (let i = 0; i < result.data.length; i++) {
-      bookings.push(result.data[i]);
-    }
-    console.log(bookings);
-  }
+  // async function getData() {
+  //   let name = JSON.parse(localStorage.getItem("user")).name;
+  //   // bookings = [];
+  //   let result = await fetch(`${BACKEND_URL}bookings/request/${name}`, {
+  //     method: "get",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //       authorization: JSON.parse(localStorage.getItem("token")),
+  //     },
+  //   });
+  //   result = await result.json();
+  //   console.log(result.data);
+  //   // for (let i = 0; i < result.data.length; i++) {
+  //   // setBookings((prev)=>({...prev,result.data[i]}));
+  //   // }
+  //   setBookings(result.data);
+  //   console.log(bookings);
+  // }
 
   //Function to show a route between the Origin and Destination of rider
   async function showRoute(e) {
@@ -160,6 +171,9 @@ const PickRide = () => {
     });
     finishResult = await finishResult.json();
     console.warn(finishResult);
+    // socket.emit("join", booking._id);
+
+    socket.emit("d_status", { rideStatus: "accepted", booking });
 
     let _id = JSON.parse(localStorage.getItem("user"))._id;
     // console.log(_id);
@@ -183,9 +197,9 @@ const PickRide = () => {
 
   //Changing the status of ride to started
   const startRide = async () => {
-    let { _id } = JSON.parse(localStorage.getItem("booking"));
-    console.log(_id);
-    let result = await fetch(`${BACKEND_URL}bookings/${_id}`, {
+    let booking = JSON.parse(localStorage.getItem("booking"));
+    // console.log(_id);
+    let result = await fetch(`${BACKEND_URL}bookings/${booking._id}`, {
       method: "put",
       body: JSON.stringify({
         status: "started",
@@ -196,6 +210,8 @@ const PickRide = () => {
       },
     });
     result = await result.json();
+
+    socket.emit("d_status", { rideStatus: "started", booking });
     console.warn(result);
     handleShow();
   };
@@ -209,13 +225,15 @@ const PickRide = () => {
             <Card.Body>
               <Card.Title></Card.Title>
               <Card.Text>Search for riders</Card.Text>
-              <Button
+              {/* <Button
                 className="mt-1"
                 variant="success"
-                onClick={() => window.location.reload()}
+                onClick={() => {
+                  // getData();
+                }}
               >
                 Search
-              </Button>
+              </Button> */}
             </Card.Body>
           </Card>
         ) : (
@@ -358,6 +376,7 @@ const PickRide = () => {
         )}
       </GoogleMap>
       <PickModal
+        socket={socket}
         riderName={riderName}
         riderContact={riderContact}
         distance={distance}

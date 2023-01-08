@@ -1,5 +1,14 @@
 import React from "react";
 import { Carousel, Card, CardGroup, Button, Accordion } from "react-bootstrap";
+import feature1 from "../Assets/feature1.jpg";
+import feature2 from "../Assets/feature2.jpg";
+import feature3 from "../Assets/feature3.jpg";
+import newfeature1 from "../Assets/newfeature1.jpg";
+import newfeature2 from "../Assets/newfeature2.jpg";
+import newfeature3 from "../Assets/newfeature3.jpg";
+import become1 from "../Assets/become1.jpg";
+import become2 from "../Assets/become2.jpg";
+import mottobg from "../Assets/mottobg.jpg";
 import { Link } from "react-router-dom";
 
 const Home = () => {
@@ -10,7 +19,7 @@ const Home = () => {
           <Carousel.Item>
             <img
               className="d-block w-100 brightness-50"
-              src="https://www.careem.com/pubweb-v2/super-app-v2/img/feature-1.jpg"
+              src={feature1}
               alt="First slide"
             />
             <Carousel.Caption>
@@ -19,11 +28,7 @@ const Home = () => {
             </Carousel.Caption>
           </Carousel.Item>
           <Carousel.Item>
-            <img
-              className="d-block w-100 brightness-50"
-              src="https://www.careem.com/pubweb-v2/super-app-v2/img/feature-2.jpg"
-              alt="Second slide"
-            />
+            <img className="d-block w-100 brightness-50" src={feature2} />
 
             <Carousel.Caption>
               We’re making life simple for millions of Customers with our
@@ -33,7 +38,7 @@ const Home = () => {
           <Carousel.Item>
             <img
               className="d-block w-100 brightness-50"
-              src="https://www.careem.com/pubweb-v2/super-app-v2/img/feature-3.jpg"
+              src={feature3}
               alt="Third slide"
             />
 
@@ -48,10 +53,7 @@ const Home = () => {
       <div className="m-2">
         <CardGroup>
           <Card className="m-1">
-            <Card.Img
-              variant="top"
-              src="https://www.careem.com/pubweb-v2/super-app-v2/img/new-feature-1.jpg"
-            />
+            <Card.Img variant="top" src={newfeature1} />
             <Card.Body>
               <Card.Title>Simplify your payments with Careem Pay</Card.Title>
               <Card.Text>
@@ -61,7 +63,7 @@ const Home = () => {
             </Card.Body>
             <Card.Footer>
               <a
-                href="https://www.careem.com/en-ae/careem-pay/"
+                href="https://www.careem.com/en-AE/pay"
                 className=" text-green-600 cursor-pointer hover:underline hover:text-green-600"
               >
                 Learn More
@@ -69,10 +71,7 @@ const Home = () => {
             </Card.Footer>
           </Card>
           <Card className="m-1">
-            <Card.Img
-              variant="top"
-              src="https://www.careem.com/pubweb-v2/super-app-v2/img/new-feature-2.jpg"
-            />
+            <Card.Img variant="top" src={newfeature2} />
             <Card.Body>
               <Card.Title>Treat yourself with Careem Rewards</Card.Title>
               <Card.Text>
@@ -83,7 +82,7 @@ const Home = () => {
             </Card.Body>
             <Card.Footer>
               <a
-                href="https://www.careem.com/en-ae/rewards/"
+                href="https://www.careem.com/en-AE/peer-to-peer"
                 className=" text-green-600 cursor-pointer hover:underline hover:text-green-600"
               >
                 Learn More
@@ -91,10 +90,7 @@ const Home = () => {
             </Card.Footer>
           </Card>
           <Card className="m-1">
-            <Card.Img
-              variant="top"
-              src="https://www.careem.com/pubweb-v2/super-app-v2/img/new-feature-3.jpg"
-            />
+            <Card.Img variant="top" src={newfeature3} />
             <Card.Body>
               <Card.Title>We care about you</Card.Title>
               <Card.Text>
@@ -104,7 +100,7 @@ const Home = () => {
             </Card.Body>
             <Card.Footer>
               <a
-                href="https://www.careem.com/en-ae/safety-and-security/"
+                href="https://www.careem.com/en-AE/life-at-careem"
                 className=" text-green-600 cursor-pointer hover:underline hover:text-green-600"
               >
                 Learn More
@@ -116,10 +112,7 @@ const Home = () => {
       <div className=" m-9">
         <CardGroup>
           <Card className=" m-1 bg-dark text-black text-center">
-            <Card.Img
-              src="https://www.careem.com/pubweb-v2/super-app-v2/img/become-1.jpg"
-              alt="Card image"
-            />
+            <Card.Img src={become1} alt="Card image" />
             <Card.ImgOverlay>
               <Card.Title>
                 <h3 className=" font-bold">Become a Captain</h3>
@@ -137,10 +130,7 @@ const Home = () => {
             </Card.ImgOverlay>
           </Card>
           <Card className="m-1 bg-dark text-black text-center">
-            <Card.Img
-              src="https://www.careem.com/pubweb-v2/super-app-v2/img/become-2.jpg"
-              alt="Card image"
-            />
+            <Card.Img src={become2} alt="Card image" />
             <Card.ImgOverlay>
               <Card.Title>
                 <h3 className=" font-bold">Become a Partner</h3>
@@ -150,7 +140,7 @@ const Home = () => {
                 <Button size="lg" variant="success">
                   <a
                     className=" text-white outline-none"
-                    href="https://www.careem.com/now-merchant-signup/"
+                    href="https://www.careem.com/en-AE/engineering-at-careem"
                   >
                     Contact Us
                   </a>
@@ -162,10 +152,7 @@ const Home = () => {
       </div>
       <div>
         <Card className="bg-dark text-white text-center font-extrabold">
-          <Card.Img
-            src="https://www.careem.com/pubweb-v2/super-app-v2/img/motto-bg.jpg"
-            alt="Card image"
-          />
+          <Card.Img src={mottobg} alt="Card image" />
           <Card.ImgOverlay>
             <h1>One app for everyday needs.</h1>
           </Card.ImgOverlay>

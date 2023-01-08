@@ -6,6 +6,9 @@ import {
   MDBCol,
   MDBIcon,
 } from "mdb-react-ui-kit";
+import logo from "../Assets/logo.svg";
+import googleplay from "../Assets/googleplay.png";
+import appstore from "../Assets/appstore.png";
 import { Link } from "react-router-dom";
 
 const Footer = () => {
@@ -43,10 +46,7 @@ const Footer = () => {
           <MDBRow className=" mt-3">
             <MDBCol md="3" lg="4" xl="3" className="mx-auto mb-4">
               <Link to="/">
-                <img
-                  alt="logo"
-                  src="https://www.careem.com/pubweb-v2/super-app-v2/img/logo.svg"
-                />
+                <img alt="logo" src={logo} />
               </Link>
             </MDBCol>
 
@@ -54,7 +54,7 @@ const Footer = () => {
               <h6 className="text-uppercase fw-bold mb-4">Important Links</h6>
               <p>
                 <a
-                  href="https://www.careem.com/en-ae/terms/"
+                  href="https://www.careem.com/en-AE/terms-of-service"
                   className="text-reset"
                 >
                   Terms of Service
@@ -62,7 +62,7 @@ const Footer = () => {
               </p>
               <p>
                 <a
-                  href="https://www.careem.com/en-ae/privacy/"
+                  href="https://www.careem.com/en-AE/privacy-policy"
                   className="text-reset"
                 >
                   Privacy Ploicy
@@ -77,15 +77,11 @@ const Footer = () => {
                     <img
                       alt="Google Playstore"
                       className="m-1"
-                      src="https://www.careem.com/pubweb-v2/images/google_play.png"
+                      src={googleplay}
                     />
                   </a>
                   <a href="https://app.adjust.com/g6wn33j">
-                    <img
-                      alt="App Store"
-                      className="m-1"
-                      src="https://www.careem.com/pubweb-v2/images/app_store.png"
-                    />
+                    <img alt="App Store" className="m-1" src={appstore} />
                   </a>
                 </li>
               </ul>

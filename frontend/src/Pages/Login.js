@@ -18,7 +18,7 @@ import {
 import swal from "sweetalert";
 import { BACKEND_URL } from "../env";
 
-const Login = () => {
+const Login = ({ socket }) => {
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const navigate = useNavigate();
@@ -79,6 +79,7 @@ const Login = () => {
       result = await result.json();
       console.log(result);
       if (result.data) {
+        socket.emit("join", result.data.rider.email);
         swal("Success!", result.message, "success");
         localStorage.setItem("user", JSON.stringify(result.data.rider));
         localStorage.setItem("token", JSON.stringify(result.data.auth));
@@ -105,6 +106,7 @@ const Login = () => {
     result = await result.json();
     console.log(result);
     if (result.data) {
+      socket.emit("join", result.data.driver.email);
       swal("Success!", result.message, "success");
       localStorage.setItem("user", JSON.stringify(result.data.driver));
       localStorage.setItem("token", JSON.stringify(result.data.auth));

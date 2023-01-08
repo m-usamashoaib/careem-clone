@@ -11,6 +11,7 @@ import {
   MDBNavbarNav,
   MDBIcon,
 } from "mdb-react-ui-kit";
+import logo from "../Assets/logo.svg";
 import { Button } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser } from "@fortawesome/free-regular-svg-icons";
@@ -50,7 +51,7 @@ const Nav = () => {
               <img
                 className="m-2 w-24 ml-5 flex justify-center text-center"
                 alt="logo"
-                src="https://www.careem.com/pubweb-v2/super-app-v2/img/logo.svg"
+                src={logo}
               />
             </Link>
           </MDBNavbarBrand>
@@ -109,7 +110,7 @@ const Nav = () => {
                 <MDBNavbarItem>
                   <MDBNavbarLink
                     className="text-white"
-                    href="https://www.careem.com/en-ae/our-story/"
+                    href="https://www.careem.com/en-AE/about-us"
                   >
                     About Us
                   </MDBNavbarLink>
@@ -117,7 +118,7 @@ const Nav = () => {
                 <MDBNavbarItem>
                   <MDBNavbarLink
                     className="text-white"
-                    href="https://www.careem.com/en-ae/careem-ride/"
+                    href="https://www.careem.com/en-AE/ride"
                   >
                     Products
                   </MDBNavbarLink>
@@ -125,15 +126,15 @@ const Nav = () => {
                 <MDBNavbarItem>
                   <MDBNavbarLink
                     className="text-white"
-                    href="https://www.careem.com/en-ae/packages/"
+                    href="https://www.careem.com/en-AE/cplus"
                   >
-                    Packages
+                    CPlus
                   </MDBNavbarLink>
                 </MDBNavbarItem>
                 <MDBNavbarItem>
                   <MDBNavbarLink
                     className="text-white"
-                    href="https://www.careem.com/en-ae/safety-and-security/"
+                    href="https://blog.careem.com/en/safety-measures-for-customers/"
                   >
                     Safety
                   </MDBNavbarLink>
@@ -141,7 +142,7 @@ const Nav = () => {
                 <MDBNavbarItem>
                   <MDBNavbarLink
                     className="text-white"
-                    href="https://www.careem.com/security"
+                    href="https://www.careem.com/en-AE/security"
                   >
                     Security
                   </MDBNavbarLink>
@@ -149,7 +150,7 @@ const Nav = () => {
                 <MDBNavbarItem>
                   <MDBNavbarLink
                     className="text-white"
-                    href="https://www.careem.com/en-ae/careers/"
+                    href="https://jobs.careem.com/"
                   >
                     Join the team
                   </MDBNavbarLink>

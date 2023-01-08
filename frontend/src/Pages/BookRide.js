@@ -9,7 +9,10 @@ import {
 import Geocode from "react-geocode";
 import { Button, Form } from "react-bootstrap";
 import RideModal from "../Components/RideModal";
-import { BACKEND_URL } from "../env";
+import { BACKEND_URL, PORT } from "../env";
+// import io from "socket.io-client";
+
+// const socket = io.connect(`http://localhost:${PORT}`);
 
 let center = {};
 
@@ -21,7 +24,7 @@ const baseRate = 100;
 //Array to store the drivers that are free at the moment
 let freeDrivers = [];
 
-const BookRide = () => {
+const BookRide = ({ socket }) => {
   Geocode.setApiKey(process.env.REACT_APP_GOOGLE_MAPS_API_KEY);
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
@@ -64,9 +67,6 @@ const BookRide = () => {
       center.lat = position.coords.latitude;
       center.lng = position.coords.longitude;
     });
-    setInterval(() => {
-      getData();
-    }, 10000);
   }, []);
 
   if (!isLoaded) return <h1>Loading</h1>;
@@ -144,6 +144,9 @@ const BookRide = () => {
     result = await result.json();
     // console.warn(result.booking);
     localStorage.setItem("booking", JSON.stringify(result.data));
+    setRideStatus("request");
+    // socket.emit("join", result.data._id);
+    socket.emit("r_request", { rideStatus: "request", booking: result.data });
     handleShow();
   };
 
@@ -185,49 +188,51 @@ const BookRide = () => {
 
   //Searching for the driver after the rider has requested a ride.
   function searchDriver(e) {
-    // console.log(fare, recommendedFare);
-    if (freeDrivers.length === 0) {
-      alert("No Driver is free at the moment");
-    } else {
-      if (fare < recommendedFare) {
-        alert("Please enter value greater then recommended value");
+    getData().then(() => {
+      // console.log(fare, recommendedFare);
+      if (freeDrivers.length === 0) {
+        alert("No Driver is free at the moment");
       } else {
-        setRequestDisabled(false);
-        console.log(freeDrivers);
-        freeDrivers.map((freeDriver) => {
-          if (freeDriver.status === "free") {
-            Geocode.fromLatLng(
-              freeDriver.location.lat,
-              freeDriver.location.lng
-            ).then((response) => {
-              const driverAddress = response.results[0].formatted_address;
-              console.log(driverAddress);
-              const driverDirectionsService =
-                new window.google.maps.DirectionsService();
-              driverDirectionsService
-                .route({
-                  origin: driverAddress,
-                  destination: originRef.current.value,
-                  travelMode: window.google.maps.TravelMode.DRIVING,
-                })
-                .then((results) => {
-                  setDriverDirectionsResponse(results);
-                  setDriverDistance(results.routes[0].legs[0].distance.text);
-                  setDriverDuration(results.routes[0].legs[0].duration.text);
-                  setDriverName(freeDriver.name);
-                  setDriverContact(freeDriver.contact);
-                  setDriverEmail(freeDriver.email);
-                  setDriverVehicle(freeDriver.vehicleNo);
-                  averageRatings(freeDriver.ratings);
-                });
-            });
-          }
-          return 0;
-        });
+        if (fare < recommendedFare) {
+          alert("Please enter value greater then recommended value");
+        } else {
+          setRequestDisabled(false);
+          console.log(freeDrivers);
+          freeDrivers.map((freeDriver) => {
+            if (freeDriver.status === "free") {
+              Geocode.fromLatLng(
+                freeDriver.location.lat,
+                freeDriver.location.lng
+              ).then((response) => {
+                const driverAddress = response.results[0].formatted_address;
+                console.log(driverAddress);
+                const driverDirectionsService =
+                  new window.google.maps.DirectionsService();
+                driverDirectionsService
+                  .route({
+                    origin: driverAddress,
+                    destination: originRef.current.value,
+                    travelMode: window.google.maps.TravelMode.DRIVING,
+                  })
+                  .then((results) => {
+                    setDriverDirectionsResponse(results);
+                    setDriverDistance(results.routes[0].legs[0].distance.text);
+                    setDriverDuration(results.routes[0].legs[0].duration.text);
+                    setDriverName(freeDriver.name);
+                    setDriverContact(freeDriver.contact);
+                    setDriverEmail(freeDriver.email);
+                    setDriverVehicle(freeDriver.vehicleNo);
+                    averageRatings(freeDriver.ratings);
+                  });
+              });
+            }
+            return 0;
+          });
+        }
+        e.preventDefault();
+        map.panTo(center);
       }
-      e.preventDefault();
-      map.panTo(center);
-    }
+    });
   }
 
   return (
@@ -357,6 +362,7 @@ const BookRide = () => {
         )}
       </GoogleMap>
       <RideModal
+        socket={socket}
         rideStatus={rideStatus}
         setRideStatus={setRideStatus}
         duration={duration}

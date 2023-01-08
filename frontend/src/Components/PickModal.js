@@ -1,8 +1,12 @@
 import React from "react";
 import { Alert, Button, Modal } from "react-bootstrap";
-import { BACKEND_URL } from "../env";
+import { BACKEND_URL, PORT } from "../env";
+// import io from "socket.io-client";
+
+// const socket = io.connect(`http://localhost:${PORT}`);
 
 const PickModal = ({
+  socket,
   riderName,
   riderContact,
   distance,
@@ -31,6 +35,8 @@ const PickModal = ({
     result = await result.json();
     console.warn(result);
 
+    socket.emit("d_status", { rideStatus: "completed", booking });
+
     let _id = JSON.parse(localStorage.getItem("user"))._id;
     // console.log(_id);
     result = await fetch(`${BACKEND_URL}driver/${_id}`, {
@@ -48,9 +54,7 @@ const PickModal = ({
 
     setRideStatus("completed");
     localStorage.removeItem("booking");
-    setTimeout(() => {
-      window.location.reload();
-    }, 3000);
+    window.location.reload();
   };
   return (
     <div>
