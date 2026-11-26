@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
+  <circle cx="20" cy="20" r="18" fill="#499d3a" stroke="#FFFFFF" stroke-width="3"/>
+  <!-- simple car, seen from the side -->
+  <path d="M10 23v-3.2l2.6-5.1c.4-.8 1.2-1.2 2-1.2h10.8c.8 0 1.6.4 2 1.2l2.6 5.1V23c0 .6-.4 1-1 1h-1.2a2.8 2.8 0 0 1-5.6 0h-4.4a2.8 2.8 0 0 1-5.6 0H11c-.6 0-1-.4-1-1Zm4.2-4.2h11.6l-1.7-3.3H15.9l-1.7 3.3Z" fill="#FFFFFF"/>
+</svg>

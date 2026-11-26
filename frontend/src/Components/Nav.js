@@ -50,7 +50,7 @@ const Nav = () => {
             <Link to="/">
               <img
                 className="m-2 w-24 ml-5 flex justify-center text-center"
-                alt="logo"
+                alt="RideHail"
                 src={logo}
               />
             </Link>
@@ -108,59 +108,31 @@ const Nav = () => {
             <MDBCollapse navbar show={showNavNoTogglerThird}>
               <MDBNavbarNav className="mr-auto mb-2 mb-lg-0">
                 <MDBNavbarItem>
-                  <MDBNavbarLink
-                    className="text-white"
-                    href="https://www.careem.com/en-AE/about-us"
-                  >
-                    About Us
+                  <MDBNavbarLink className="text-white" href="/#how">
+                    How it works
+                  </MDBNavbarLink>
+                </MDBNavbarItem>
+                <MDBNavbarItem>
+                  <MDBNavbarLink className="text-white" href="/#fares">
+                    Fares
+                  </MDBNavbarLink>
+                </MDBNavbarItem>
+                <MDBNavbarItem>
+                  <MDBNavbarLink className="text-white" href="/#drive">
+                    Drive
+                  </MDBNavbarLink>
+                </MDBNavbarItem>
+                <MDBNavbarItem>
+                  <MDBNavbarLink className="text-white" href="/#faq">
+                    FAQ
                   </MDBNavbarLink>
                 </MDBNavbarItem>
                 <MDBNavbarItem>
                   <MDBNavbarLink
                     className="text-white"
-                    href="https://www.careem.com/en-AE/ride"
+                    href="https://github.com/m-usamashoaib/ride-hailing-app"
                   >
-                    Products
-                  </MDBNavbarLink>
-                </MDBNavbarItem>
-                <MDBNavbarItem>
-                  <MDBNavbarLink
-                    className="text-white"
-                    href="https://www.careem.com/en-AE/cplus"
-                  >
-                    CPlus
-                  </MDBNavbarLink>
-                </MDBNavbarItem>
-                <MDBNavbarItem>
-                  <MDBNavbarLink
-                    className="text-white"
-                    href="https://blog.careem.com/en/safety-measures-for-customers/"
-                  >
-                    Safety
-                  </MDBNavbarLink>
-                </MDBNavbarItem>
-                <MDBNavbarItem>
-                  <MDBNavbarLink
-                    className="text-white"
-                    href="https://www.careem.com/en-AE/security"
-                  >
-                    Security
-                  </MDBNavbarLink>
-                </MDBNavbarItem>
-                <MDBNavbarItem>
-                  <MDBNavbarLink
-                    className="text-white"
-                    href="https://jobs.careem.com/"
-                  >
-                    Join the team
-                  </MDBNavbarLink>
-                </MDBNavbarItem>
-                <MDBNavbarItem>
-                  <MDBNavbarLink
-                    className="text-white"
-                    href="https://help.careem.com/"
-                  >
-                    Help
+                    Source code
                   </MDBNavbarLink>
                 </MDBNavbarItem>
               </MDBNavbarNav>

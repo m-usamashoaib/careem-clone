@@ -12,7 +12,7 @@ const sendMail = (Data, key) => {
       response = {
         body: {
           name: `${Data.name}`,
-          intro: "Welcome to Careem! We're very excited to have you on board.",
+          intro: "Welcome to RideHail! We're very excited to have you on board.",
           action: {
             instructions: "To confirm your account, please click here:",
             button: {
@@ -187,7 +187,7 @@ const sendMail = (Data, key) => {
   let MailGenerator = new Mailgen({
     theme: "default",
     product: {
-      name: "Careem",
+      name: "RideHail",
       link: `${process.env.BASE_URL}`,
     },
   });

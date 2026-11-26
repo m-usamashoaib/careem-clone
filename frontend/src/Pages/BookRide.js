@@ -10,6 +10,7 @@ import Geocode from "react-geocode";
 import { Button, Form } from "react-bootstrap";
 import RideModal from "../Components/RideModal";
 import { BACKEND_URL, PORT } from "../env";
+import carIcon from "../Assets/car-marker.svg";
 // import io from "socket.io-client";
 
 // const socket = io.connect(`http://localhost:${PORT}`);
@@ -332,7 +333,7 @@ const BookRide = ({ socket }) => {
             options={{
               // icon: CarIcon,
               icon: {
-                url: "https://d1a3f4spazzrp4.cloudfront.net/car-types/map70px/product/map-uberx.png",
+                url: carIcon,
                 scaledSize: new window.google.maps.Size(30, 30),
               },
             }}

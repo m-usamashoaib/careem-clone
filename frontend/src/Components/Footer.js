@@ -7,9 +7,9 @@ import {
   MDBIcon,
 } from "mdb-react-ui-kit";
 import logo from "../Assets/logo.svg";
-import googleplay from "../Assets/googleplay.png";
-import appstore from "../Assets/appstore.png";
 import { Link } from "react-router-dom";
+
+const REPO_URL = "https://github.com/m-usamashoaib/ride-hailing-app";
 
 const Footer = () => {
   return (
@@ -19,24 +19,22 @@ const Footer = () => {
     >
       <section className="d-flex justify-content-center justify-content-lg-between p-4 border-bottom">
         <div className="me-5 d-none d-lg-block">
-          <span>Get connected with us on social networks:</span>
+          <span>A portfolio project by Muhammad Usama Shoaib</span>
         </div>
 
         <div>
-          <a
-            href="https://www.facebook.com/CareemJOR/?brand_redir=456801891004898"
-            className="me-4 text-reset"
-          >
-            <MDBIcon fab icon="facebook-f" />
-          </a>
-          <a href="https://twitter.com/CareemUAE" className="me-4 text-reset">
-            <MDBIcon fab icon="twitter" />
+          <a href={REPO_URL} className="me-4 text-reset" aria-label="Source code on GitHub">
+            <MDBIcon fab icon="github" />
           </a>
           <a
-            href="https://www.linkedin.com/company/careem"
+            href="https://www.linkedin.com/in/m-usamashoaib"
             className="me-4 text-reset"
+            aria-label="LinkedIn"
           >
             <MDBIcon fab icon="linkedin" />
+          </a>
+          <a href="https://m-usamashoaib.github.io" className="me-4 text-reset" aria-label="Portfolio">
+            <MDBIcon fas icon="globe" />
           </a>
         </div>
       </section>
@@ -46,45 +44,37 @@ const Footer = () => {
           <MDBRow className=" mt-3">
             <MDBCol md="3" lg="4" xl="3" className="mx-auto mb-4">
               <Link to="/">
-                <img alt="logo" src={logo} />
+                <img alt="RideHail" src={logo} style={{ maxWidth: "200px" }} />
               </Link>
+              <p className="mt-3">Book rides, see fares up front and follow your trip in real time.</p>
             </MDBCol>
 
             <MDBCol md="2" lg="2" xl="2" className="mx-auto mb-4">
-              <h6 className="text-uppercase fw-bold mb-4">Important Links</h6>
+              <h6 className="text-uppercase fw-bold mb-4">Ride</h6>
               <p>
-                <a
-                  href="https://www.careem.com/en-AE/terms-of-service"
-                  className="text-reset"
-                >
-                  Terms of Service
-                </a>
+                <Link to="/signup" className="text-reset">
+                  Create an account
+                </Link>
               </p>
               <p>
-                <a
-                  href="https://www.careem.com/en-AE/privacy-policy"
-                  className="text-reset"
-                >
-                  Privacy Ploicy
-                </a>
+                <Link to="/login" className="text-reset">
+                  Log in
+                </Link>
               </p>
             </MDBCol>
 
             <MDBCol md="3" lg="2" xl="2" className="mx-auto mb-4">
-              <ul className="list-unstyled">
-                <li>
-                  <a href="https://app.adjust.com/kg4lpur">
-                    <img
-                      alt="Google Playstore"
-                      className="m-1"
-                      src={googleplay}
-                    />
-                  </a>
-                  <a href="https://app.adjust.com/g6wn33j">
-                    <img alt="App Store" className="m-1" src={appstore} />
-                  </a>
-                </li>
-              </ul>
+              <h6 className="text-uppercase fw-bold mb-4">Project</h6>
+              <p>
+                <a href={REPO_URL} className="text-reset">
+                  Source code
+                </a>
+              </p>
+              <p>
+                <a href={`${REPO_URL}#readme`} className="text-reset">
+                  How it works
+                </a>
+              </p>
             </MDBCol>
           </MDBRow>
         </MDBContainer>
@@ -94,7 +84,7 @@ const Footer = () => {
         className="text-center p-4"
         style={{ backgroundColor: "rgba(0, 0, 0, 0.05)" }}
       >
-        All rights reserved. Careem, an Uber company © 2021
+        © 2023 RideHail · Educational project, not affiliated with any ride-hailing company.
       </div>
     </MDBFooter>
   );

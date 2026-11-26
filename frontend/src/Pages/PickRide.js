@@ -9,6 +9,7 @@ import Geocode from "react-geocode";
 import { Button, Card } from "react-bootstrap";
 import PickModal from "../Components/PickModal";
 import { BACKEND_URL, PORT } from "../env";
+import carIcon from "../Assets/car-marker.svg";
 
 // import io from "socket.io-client";
 
@@ -330,7 +331,7 @@ const PickRide = ({ socket }) => {
           zIndex={9}
           options={{
             icon: {
-              url: "https://d1a3f4spazzrp4.cloudfront.net/car-types/map70px/product/map-uberx.png",
+              url: carIcon,
               scaledSize: new window.google.maps.Size(30, 30),
             },
           }}
