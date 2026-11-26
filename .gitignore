@@ -1,0 +1,13 @@
+# Dependencies and builds
+node_modules/
+frontend/build/
+
+# Secrets: never commit these
+.env
+.env.*
+backend/env.js
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
